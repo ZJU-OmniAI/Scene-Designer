@@ -137,7 +137,7 @@ Scene-Designer/
 ├── tools/                   CoT annotation and data conversion
 ├── src_critic/              perturbations, ranking labels, and Critic rewards
 ├── src/                     SFT, Scene-GRPO, and scene-generation inference
-├── OpenSceneAgent/          SceneSmith runtime adapters
+├── Designer/               SceneSmith runtime adapters
 ├── prompts/                 policy instructions and tool schemas
 ├── integration/             external SceneSmith patch and configuration
 ├── scripts/                 setup and execution helpers

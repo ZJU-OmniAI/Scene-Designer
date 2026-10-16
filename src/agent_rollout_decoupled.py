@@ -21,11 +21,11 @@ from scenesmith.agent_utils.room import RoomScene
 from scenesmith.utils.logging import ConsoleLogger
 from scenesmith.experiments.base_experiment import BaseExperiment
 
-from OpenSceneAgent.loop import (
+from Designer.loop import (
     build_agent_and_tools as build_floor_plan_agent_tools,
     dispatch,
 )
-from OpenSceneAgent.replay_chained import (
+from Designer.replay_chained import (
     BackendServers,
     COMPATIBLE_CEILING_AGENTS,
     COMPATIBLE_FURNITURE_AGENTS,
@@ -35,7 +35,7 @@ from OpenSceneAgent.replay_chained import (
     derive_room_scene,
 )
 
-from OpenSceneAgent.agent_rollout import (
+from Designer.agent_rollout import (
     DEFAULT_MODEL_DIR,
     build_messages,
     model_generate,

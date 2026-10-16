@@ -1,7 +1,7 @@
 """Shared room-summary block builder.
 
 Both offline tooling (tools/inject_room_summary_to_sft.py) and the runtime
-inference path (OpenSceneAgent/agent_rollout.py via agent_rollout_decoupled.py)
+inference path (Designer/agent_rollout.py via agent_rollout_decoupled.py)
 produce the SAME compact text block describing the room created in the
 floor_plan stage. Training and inference must see byte-for-byte identical
 summaries so the model's input distribution stays the same.

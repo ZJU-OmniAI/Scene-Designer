@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 
 from agent_rollout_decoupled import RolloutSession, ToolEnvironment
 from scenesmith.utils.logging import ConsoleLogger
-from OpenSceneAgent.loop import dispatch
+from Designer.loop import dispatch
 
 
 # In Docker, <container-results> is the container-side path and HOST_RESULTS_ROOT is

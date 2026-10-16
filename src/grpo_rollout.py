@@ -30,13 +30,13 @@ from src.runtime import ROOT as REPO_ROOT, SCENESMITH_ROOT
 import memory as _mem  # noqa: E402
 
 # Reuse agent_rollout helpers (same container path assumptions).
-from OpenSceneAgent.agent_rollout import (  # noqa: E402
+from Designer.agent_rollout import (  # noqa: E402
     build_messages,
     parse_assistant_text,
     render_system,
     render_topdown,
 )
-from OpenSceneAgent.loop import dispatch  # noqa: E402
+from Designer.loop import dispatch  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

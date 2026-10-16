@@ -55,7 +55,7 @@ except ImportError:
 from scenesmith.llm_provider import configure as _configure_llm_gateway  # noqa: E402
 _configure_llm_gateway()
 
-# Heavy scenesmith/OpenSceneAgent imports live ONLY inside collect_episode() so
+# Heavy SceneSmith/Designer imports live ONLY inside collect_episode() so
 # that multiprocessing.spawn (used by SAM3D worker_pool) can re-import this
 # file without triggering the bpy import chain (which fails in spawned workers).
 
@@ -566,8 +566,8 @@ async def collect_episode(
     )
     from scenesmith.utils.logging import ConsoleLogger  # noqa: E402
     from scenesmith.experiments.base_experiment import BaseExperiment  # noqa: E402
-    from OpenSceneAgent.loop import build_agent_and_tools  # noqa: E402
-    from OpenSceneAgent.replay_chained import (  # noqa: E402
+    from Designer.loop import build_agent_and_tools  # noqa: E402
+    from Designer.replay_chained import (  # noqa: E402
         BackendServers,
         COMPATIBLE_FURNITURE_AGENTS,
         compose_full_cfg,

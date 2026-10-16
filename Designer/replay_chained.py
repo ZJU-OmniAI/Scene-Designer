@@ -53,7 +53,7 @@ from scenesmith.agent_utils.articulated_retrieval_server.server_manager import (
     ArticulatedRetrievalServer,
 )
 
-from OpenSceneAgent.loop import (  # noqa: E402
+from Designer.loop import (  # noqa: E402
     build_agent_and_tools as build_floor_plan_agent_tools,
     dispatch,
 )

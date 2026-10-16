@@ -26,11 +26,11 @@ from scenesmith.utils.logging import ConsoleLogger  # noqa: E402
 from scenesmith.experiments.base_experiment import BaseExperiment  # noqa: E402
 
 # Reuse replay_chained's stage-handover machinery — fewer surfaces to debug.
-from OpenSceneAgent.loop import (  # noqa: E402
+from Designer.loop import (  # noqa: E402
     build_agent_and_tools as build_floor_plan_agent_tools,
     dispatch,
 )
-from OpenSceneAgent.replay_chained import (  # noqa: E402
+from Designer.replay_chained import (  # noqa: E402
     BackendServers,
     COMPATIBLE_CEILING_AGENTS,
     COMPATIBLE_FURNITURE_AGENTS,
@@ -42,7 +42,7 @@ from OpenSceneAgent.replay_chained import (  # noqa: E402
 
 # Memory builder lives at <repo>/src/memory.py.
 # In Docker the repo is mounted at <release-root>; on the host derive from __file__
-# (__file__ = <repo>/scenesmith/OpenSceneAgent/agent_rollout.py → parents[2] = repo root).
+# (__file__ = <repo>/scenesmith/Designer/agent_rollout.py → parents[2] = repo root).
 _REPO_ROOT = REPO_ROOT
 import memory as _mem  # noqa: E402
 

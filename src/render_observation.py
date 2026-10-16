@@ -8,7 +8,7 @@ from src.scene_observation import VIEW_ORDER, validate_scene_views
 
 
 def render_scene_views(agent, scene, save_dir, step_idx):
-    from OpenSceneAgent.replay_chained import _save_roomscene_blend
+    from Designer.replay_chained import _save_roomscene_blend
     save_dir = Path(save_dir).resolve()
     save_dir.mkdir(parents=True, exist_ok=True)
     blend = save_dir / f'step_{step_idx:03d}.blend'

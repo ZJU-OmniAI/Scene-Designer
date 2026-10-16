@@ -10,7 +10,7 @@
 | `tools/` | CoT annotation, five-view preparation, Critic SFT conversion |
 | `src_critic/` | Scene perturbations, rendering, ranking labels, CoT and rewards |
 | `src/` | SFT, GRPO, model client, tool server, shared observation contract |
-| `OpenSceneAgent/` | Small runtime adapters for SceneSmith; historical package name retained |
+| `Designer/` | Runtime adapters for SceneSmith |
 | `prompts/` | Stage-specific policy instructions and tool schemas |
 | `integration/` | SceneSmith compatibility patch and configuration |
 | `scripts/` | Setup, preflight, isolated physics/render workers |
@@ -49,7 +49,7 @@ uv pip install -r requirements.txt
 
 The patch also aligns SceneSmith’s older PyTorch/Torchvision/Transformers constraints with this release’s tested model stack. Rebuild optional CUDA extensions for the installed PyTorch version when preparing the geometry backend.
 
-The setup script applies `integration/scenesmith.patch` and copies `integration/scene_designer.yaml` into `scenesmith/configurations/scene_designer.yaml`. **Do not copy our `src/` or `OpenSceneAgent/` into SceneSmith.** They remain here; `src/runtime.py` puts the correct release and external checkout on the import path. For a different checkout location, set `SCENESMITH_ROOT` before launching. The patch is checked against the exact upstream revision and refuses an incompatible checkout.
+The setup script applies `integration/scenesmith.patch` and copies `integration/scene_designer.yaml` into `scenesmith/configurations/scene_designer.yaml`. **Do not copy our `src/` or `Designer/` into SceneSmith.** They remain here; `src/runtime.py` puts the correct release and external checkout on the import path. For a different checkout location, set `SCENESMITH_ROOT` before launching. The patch is checked against the exact upstream revision and refuses an incompatible checkout.
 
 The integration patch preserves the research configuration’s **0.2 m floor-penetration tolerance** for furniture, wall and ceiling (upstream uses 0.05 m). This affects physical validation; override `physics_validation.floor_penetration_tolerance_m` per stage if you need the stricter setting. Failed physics checks return “unknown”, never a successful validation. Manipuland generation is outside this release’s four-stage scope.
 
