@@ -2,7 +2,7 @@
 
 **Learning Design Intelligence for Agentic 3D Scene Generation**
 
-[Project page](https://11penguins.github.io/Scene-Designer/)
+[Project page](https://zju-omniai.github.io/Scene-Designer/)
 
 Xuanyu Liu*, Hongyan Feng*, Miao Pan, Sunlai Chen, Lizhou Liang, Bing Sun, Wenqi Zhang, Xuhong Zhang.
 

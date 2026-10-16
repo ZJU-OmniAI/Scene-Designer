@@ -1,11 +1,11 @@
 <div align="center">
-  <h1><img src="https://11penguins.github.io/Scene-Designer/assets/images/title.png" alt="Scene-Designer bear logo" height="64" align="absmiddle">&nbsp; Scene-Designer</h1>
+  <h1><img src="https://zju-omniai.github.io/Scene-Designer/assets/images/title.png" alt="Scene-Designer bear logo" height="64" align="absmiddle">&nbsp; Scene-Designer</h1>
   <p><strong>Learning Design Intelligence for Agentic 3D Scene Generation</strong></p>
   <p>Xuanyu Liu*, Hongyan Feng*, Miao Pan, Sunlai Chen, Lizhou Liang, Bing Sun, Wenqi Zhang, Xuhong Zhang</p>
   <p>Zhejiang University · Universal Identification Technology (Hangzhou) Co., Ltd.</p>
   <p><strong>OmniAI Group of ZJU ACES Lab</strong><br><sub>* Equal contribution</sub></p>
   <p>
-    <a href="https://11penguins.github.io/Scene-Designer/"><img src="https://img.shields.io/badge/-Project_Page-0F5354?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white" alt="Project page"></a>
+    <a href="https://zju-omniai.github.io/Scene-Designer/"><img src="https://img.shields.io/badge/-Project_Page-0F5354?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white" alt="Project page"></a>
     <a href="https://huggingface.co/XuanyuLiu/Scene-Builder-Qwen3-VL-8B-Instruct"><img src="https://img.shields.io/badge/HF-Model-FFD21E?style=for-the-badge&amp;logo=huggingface&amp;labelColor=3A3B45" alt="Scene-Builder model"></a>
     <a href="https://huggingface.co/datasets/XuanyuLiu/Scene-OTC-Bench"><img src="https://img.shields.io/badge/HF-Dataset-FFD21E?style=for-the-badge&amp;logo=huggingface&amp;labelColor=3A3B45" alt="Scene-OTC-Bench dataset"></a>
     <a href="https://github.com/ZJU-OmniAI/Scene-Designer"><img src="https://img.shields.io/badge/-Code-171B1F?style=for-the-badge&amp;logo=github&amp;logoColor=white" alt="Code"></a>
@@ -14,11 +14,11 @@
 </div>
 
 <p align="center">
-  <a href="https://11penguins.github.io/Scene-Designer/#overview-video">
-    <img src="https://11penguins.github.io/Scene-Designer/assets/images/overview-poster.jpg" width="90%" alt="Watch the English Scene-Designer introduction">
+  <a href="https://zju-omniai.github.io/Scene-Designer/#overview-video">
+    <img src="https://zju-omniai.github.io/Scene-Designer/assets/images/overview-poster.jpg" width="90%" alt="Watch the English Scene-Designer introduction">
   </a>
 </p>
-<p align="center"><a href="https://11penguins.github.io/Scene-Designer/#overview-video">▶ Watch the English introduction</a> · <a href="https://11penguins.github.io/Scene-Designer/#demo">Explore scene demos</a></p>
+<p align="center"><a href="https://zju-omniai.github.io/Scene-Designer/#overview-video">▶ Watch the English introduction</a> · <a href="https://zju-omniai.github.io/Scene-Designer/#demo">Explore scene demos</a></p>
 
 ## 📖 Overview
 
@@ -27,7 +27,7 @@
 **Scene design** concerns constructing physically valid, functionally correct, and layout-coherent scenes, while efficiently correcting errors without unnecessary trial and error when problems arise. **Scene critique** focuses on assessing scene quality along the same dimensions and distinguishing better designs from poorer ones. These two capabilities are closely connected, since effective design requires reliable critique to guide construction, while meaningful critique requires an understanding of what constitutes good scene design.
 
 <p align="center">
-  <img src="https://11penguins.github.io/Scene-Designer/assets/images/design-intelligence-figure1.png" width="94%" alt="Design Intelligence: scene design and scene critique">
+  <img src="https://zju-omniai.github.io/Scene-Designer/assets/images/design-intelligence-figure1.png" width="94%" alt="Design Intelligence: scene design and scene critique">
 </p>
 
 ## 🧭 Learning from Design and Critique Experience
