@@ -31,7 +31,7 @@ Open http://127.0.0.1:8891/ on the same machine.
 
 ## Publishing
 
-In repository Settings → Pages, use a GitHub Actions workflow to publish the `website/` directory. The site uses relative asset paths and requires no build step.
+The live site is published from the `gh-pages` branch, with its source set to `/ (root)` in Settings → Pages. Keep the contents of this `website/` directory synchronized to the root of that branch when updating the site. The site uses relative asset paths and requires no build step.
 
 Edit index.html, styles.css, or app.js to update the page. Media files are in assets/; the Paper button is pending an arXiv URL. No manuscript PDF is included.
 
