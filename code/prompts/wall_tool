@@ -1,0 +1,40 @@
+Tools available to the wall-decor designer. Field names, types, enums, ranges strictly enforced.
+
+# Asset generation
+
+- generate_wall_assets(object_descriptions: list[str], short_names: list[str], desired_dimensions: list[[w,d,h]], style_context: str = "") -> {success, assets: [{object_id, width, depth, height}]}
+  Batch-generate wall-mounted assets. All three list args MUST have equal length.
+  desired_dimensions is list[[width, depth, height]] meters; depth is typically thin.
+
+# Placement
+
+- place_wall_object(asset_id: str, wall_surface_id: str, position_x: float, position_z: float, rotation_degrees: float = 0.0) -> Result
+  Attach an asset to a wall surface.
+    wall_surface_id: id of the wall surface (from get_current_scene_state's wall_surfaces). Different per room.
+    position_x: meters along the wall (from wall start, left-to-right when facing).
+    position_z: meters height from floor.
+    rotation_degrees: rotation around wall normal.
+  asset_id MUST be an object_id returned by an earlier generate_wall_assets.
+  MUST NOT overlap excluded regions (doors / windows).
+
+# Correction
+
+- move_wall_object(object_id: str, wall_surface_id: str, position_x: float, position_z: float, rotation_degrees: float = 0.0) -> Result
+
+- remove_wall_object(object_id: str) -> Result
+
+- rescale_wall_object(object_id: str, scale_factor: float) -> Result
+  scale_factor > 0 and != 1.0. Affects all instances of the asset.
+
+# Validation
+
+- check_physics() -> str
+  Run the physics/collision check after placement or correction. Use its
+  result to detect wall-object penetration and other scene collisions.
+
+# Strict rules
+
+- Wall coordinates are 2D on the wall surface: X along the wall, Z vertical. NOT world XYZ.
+- wall_surface_id comes from the ROOM's scene state — different for each wall of each room.
+- Doors / windows define excluded regions; placements intersecting them fail.
+- asset_id values must match those produced by generate_wall_assets exactly, postfixes included.

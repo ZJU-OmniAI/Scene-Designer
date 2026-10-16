@@ -1,0 +1,52 @@
+Tools available to the floor plan designer. Field names, types, enums, ranges
+strictly enforced. Wrong field name = silent fail (success=false).
+
+# Room layout
+
+- generate_room_specs(room_specs_json: str) -> Result
+  MUST be called first. room_specs_json is a STRING containing a JSON ARRAY.
+  Each array item:
+    type           str, required — "bathroom" | "bedroom" | "kitchen" | "living_room" | "hallway" | ...   (NOT room_type)
+    prompt         str, required — natural-language description
+    width          float, optional, default 5.0, range [1.5, 20.0]   (meters)
+    depth          float, optional, default 4.0, range [1.5, 20.0]
+    connections    {<room_id>: "DOOR" | "OPEN"}, optional
+    exterior_walls subset of ["north","south","east","west"], optional
+  room_id is derived from type ("bathroom", second occurrence "bathroom_2", ...).
+
+- resize_room(room_id: str, width: float, depth: float)        width/depth ∈ [1.5, 20.0]
+- add_adjacency / remove_adjacency(room_a, room_b)
+- add_open_connection / remove_open_connection(room_a, room_b)  after an open conn, no doors between those rooms
+
+# Geometry
+
+- set_wall_height(height_meters: float)                         ∈ [2.0, 4.5]
+- add_door(wall_id, position, width=0.9, height=2.1)
+    wall_id   str — segment label "A"/"B"/"C"/... from generate_room_specs's wall_segment_labels
+    position  enum ["left","center","right"]
+    width  ∈ [0.6, 1.9]    height ∈ [1.8, 2.4]
+- remove_door(door_id)                                          door_id auto-assigned: "door_1", "door_2", ...
+- add_window(wall_id, position, width=1.2, height=1.2, sill_height=0.9)
+    Exterior walls only; wall must not already have a door.
+    position enum ["left","center","right"]
+    width ∈ [0.6, 3.0]   height ∈ [0.6, 2.0]   sill_height: meters from floor
+- remove_window(window_id)                                      window_id: "window_1", "window_2", ...
+
+# Materials
+
+- get_material(description: str) -> {material_id, ...}
+  CLIP retrieval. Use specific descriptions ("light oak wood floor"), not "wood".
+- set_room_materials(room_id, floor_material_id, wall_material_id)
+  Both material IDs are REQUIRED. Call get_material for the floor and wall
+  descriptions first, then provide both returned IDs in the same call.
+- set_exterior_material(material_id)
+  All material_ids passed into set_* MUST come from a prior get_material call in this trajectory
+  (no hard-coded ids — they will fail with "Material not found").
+
+# Strict rules
+
+- Field names case-sensitive: `type` not `room_type`; `height_meters` not `height`/`wall_height`; `wall_id` not `wallId`/`wall`.
+- Enum values exact: "center" not "middle"; "north" not "N".
+- Out-of-range numerics → success=false.
+- room_specs_json is always an ARRAY string (one element when single room), never a bare object.
+- room_id in set_room_materials MUST match the id derived from generate_room_specs.

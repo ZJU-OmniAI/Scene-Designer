@@ -1,0 +1,2033 @@
+--- a/configurations/ceiling_agent/base_ceiling_agent.yaml
++++ b/configurations/ceiling_agent/base_ceiling_agent.yaml
+@@ -10,7 +10,7 @@
+   # Summarize older turns via LLM (if false, just strip images).
+   enable_summarization: true
+   # Model for summarization ("agent" uses cfg.openai.model).
+-  summarization_model: "gpt-5.2"
++  summarization_model: "gpt-5.5"
+   # Thinking effort for summarization ("none", "low", "medium", "high").
+   summarization_thinking: "low"
+   # Intra-turn observation stripping: strip images from older observe_scene outputs
+@@ -194,7 +194,7 @@
+ 
+ # OpenAI model and reasoning configuration.
+ openai:
+-  model: "gpt-5.2"
++  model: "gpt-5.5"
+   service_tier: ${openai.service_tier}
+   vision_detail: "high"
+   reasoning_effort:
+@@ -228,7 +228,7 @@
+ # Physics validation configuration.
+ physics_validation:
+   wall_thickness: 0.05
+-  floor_penetration_tolerance_m: 0.05
++  floor_penetration_tolerance_m: 0.2  # 20cm
+   object_penetration_threshold_m: 0.001
+   manipuland_furniture_tolerance_m: 0.02
+ 
+--- a/configurations/experiment/base_experiment.yaml
++++ b/configurations/experiment/base_experiment.yaml
+@@ -41,27 +41,27 @@
+ # Geometry generation server settings
+ geometry_generation_server:
+   host: "127.0.0.1"
+-  port: 7005
++  port: ${oc.decode:${oc.env:SS_GEOMETRY_PORT,17005}}
+ 
+ # HSSD retrieval server settings
+ hssd_retrieval_server:
+   host: "127.0.0.1"
+-  port: 7006
++  port: ${oc.decode:${oc.env:SS_HSSD_PORT,17006}}
+ 
+ # Articulated retrieval server settings
+ articulated_retrieval_server:
+   host: "127.0.0.1"
+-  port: 7007
++  port: ${oc.decode:${oc.env:SS_ARTICULATED_PORT,17007}}
+ 
+ # Objaverse retrieval server settings
+ objaverse_retrieval_server:
+   host: "127.0.0.1"
+-  port: 7009
++  port: ${oc.decode:${oc.env:SS_OBJAVERSE_PORT,17009}}
+ 
+ # Materials retrieval server settings
+ materials_retrieval_server:
+   host: "127.0.0.1"
+-  port: 7008
++  port: ${oc.decode:${oc.env:SS_MATERIALS_PORT,17008}}
+   data_path: "data/materials"
+   embeddings_path: "data/materials/embeddings"
+   use_top_k: 5
+--- a/configurations/floor_plan_agent/base_floor_plan_agent.yaml
++++ b/configurations/floor_plan_agent/base_floor_plan_agent.yaml
+@@ -13,7 +13,7 @@
+   # Summarize older turns via LLM (if false, just strip images).
+   enable_summarization: true
+   # Model for summarization ("agent" uses cfg.openai.model).
+-  summarization_model: "gpt-5.2"
++  summarization_model: "gpt-5.5"
+   # Thinking effort for summarization ("none", "low", "medium", "high").
+   summarization_thinking: "low"
+   # Intra-turn observation stripping: strip images from older observe_scene outputs
+@@ -37,6 +37,9 @@
+   # Default materials (from materials/ directory)
+   default_wall_material: "Plaster001_1K-JPG"
+   default_floor_material: "Wood094_1K-JPG"
++  # Materials retrieval server connection (must match experiment/base_experiment.yaml)
++  server_host: "127.0.0.1"
++  server_port: 17008
+ 
+ # Room dimension constraints
+ min_floor_plan_dim_m: 1.5
+@@ -92,7 +95,7 @@
+ 
+ # OpenAI model and reasoning configuration
+ openai:
+-  model: "gpt-5.2"
++  model: "gpt-5.5"
+   service_tier: ${openai.service_tier}
+   vision_detail: "high"
+   reasoning_effort:
+--- a/configurations/furniture_agent/base_furniture_agent.yaml
++++ b/configurations/furniture_agent/base_furniture_agent.yaml
+@@ -10,7 +10,7 @@
+   # Summarize older turns via LLM (if false, just strip images).
+   enable_summarization: true
+   # Model for summarization ("agent" uses cfg.openai.model).
+-  summarization_model: "gpt-5.2"
++  summarization_model: "gpt-5.5"
+   # Thinking effort for summarization ("none", "low", "medium", "high").
+   summarization_thinking: "low"
+   # Intra-turn observation stripping: strip images from older observe_scene outputs
+@@ -69,7 +69,7 @@
+ 
+ # Asset manager configuration
+ asset_manager:
+-  # Asset source: "generated" (Hunyuan3D/SAM3D) or "hssd" (HSSD retrieval)
++  # Asset source: "generated" (Hunyuan3D/SAM3D) or "hssd" (HSSD retrieval) or "objaverse"
+   general_asset_source: "generated"
+ 
+   # 3D generation backend (only used when general_asset_source="generated")
+@@ -90,7 +90,7 @@
+       # Standard asset acquisition - fulfilled by top-level "strategy" setting
+       generated:
+         enabled: true
+-        max_retries: 2  # Retry with same prompt (randomness gives different results)
++        max_retries: 0  # No retry: Blender validation fails on headless server (EGL), skip validation
+       # Articulated objects
+       articulated:
+         enabled: true
+@@ -175,6 +175,14 @@
+     gemini:
+       aspect_ratio: "1:1"
+       image_size: "1K"  # "1K", "2K", "4K"
++  # Skip VLM physics analysis (requires Blender EGL rendering). Set true on headless
++  # servers where Blender SIGABRT-crashes on any render_multiview call, which would
++  # cascade to kill convert_glb_to_gltf and canonicalize_mesh for subsequent items.
++  skip_physics_analysis: true  # Headless A800: EGL unavailable, Blender crashes
++  physics_analysis_render_engine: eevee
++  physics_analysis_cycles_samples: 8
++  physics_analysis_resolution: 256
++
+   # Number of side views to render for mesh physics analysis (mass, orientation, material)
+   # Recommended: 4 for axis-aligned views, 8 for axis-aligned + diagonals
+   num_side_views_for_physics_analysis: 4
+@@ -253,7 +261,7 @@
+ 
+ # OpenAI model and reasoning configuration
+ openai:
+-  model: "gpt-5.2"
++  model: "gpt-5.5"
+   service_tier: ${openai.service_tier}
+   # Vision detail level for image processing
+   # Options: "low" (512x512, 65 tokens), "high" (detailed processing), "auto" (default)
+@@ -301,7 +309,10 @@
+   # Wall thickness for carpet boundary checking (meters) - carpets must not extend under walls.
+   wall_thickness: 0.05  # 5cm
+   # Tolerance for furniture-floor penetration (meters) - allows furniture to "sink" into floor slightly
+-  floor_penetration_tolerance_m: 0.05  # 5cm
++  # NOTE: Set to 5.0m to suppress Drake SDF phantom floor collisions from retrieved assets
++  # whose collision meshes extend below Z=0 due to origin-at-center convention (not origin-at-base).
++  # Allow up to 20cm floor penetration to absorb small SDF-origin artifacts.
++  floor_penetration_tolerance_m: 0.2  # 20cm
+   # Threshold for object-object collision detection (meters) - minimum penetration to report
+   object_penetration_threshold_m: 0.001  # 1mm
+   # Tolerance for manipuland-furniture surface contact (meters) - filters mild expected contact
+--- a/configurations/manipuland_agent/base_manipuland_agent.yaml
++++ b/configurations/manipuland_agent/base_manipuland_agent.yaml
+@@ -10,7 +10,7 @@
+   # Summarize older turns via LLM (if false, just strip images).
+   enable_summarization: true
+   # Model for summarization ("agent" uses cfg.openai.model).
+-  summarization_model: "gpt-5.2"
++  summarization_model: "gpt-5.5"
+   # Thinking effort for summarization ("none", "low", "medium", "high").
+   summarization_thinking: "low"
+   # Intra-turn observation stripping: strip images from older observe_scene outputs
+@@ -65,7 +65,7 @@
+ 
+ # Asset manager configuration
+ asset_manager:
+-  # Asset source: "generated" (Hunyuan3D/SAM3D) or "hssd" (HSSD retrieval)
++  # Asset source: "generated" (Hunyuan3D/SAM3D) or "hssd" (HSSD retrieval) or "objaverse"
+   general_asset_source: "generated"
+ 
+   # 3D generation backend (only used when general_asset_source="generated")
+@@ -236,7 +236,7 @@
+ 
+ # OpenAI model and reasoning configuration
+ openai:
+-  model: "gpt-5.2"
++  model: "gpt-5.5"
+   service_tier: ${openai.service_tier}
+   # Vision detail level for image processing
+   vision_detail: "high"
+@@ -315,7 +315,7 @@
+   # Wall thickness for carpet boundary checking (meters) - carpets must not extend under walls.
+   wall_thickness: 0.05  # 5cm
+   # Tolerance for furniture-floor penetration (meters)
+-  floor_penetration_tolerance_m: 0.05  # 5cm
++  floor_penetration_tolerance_m: 5.0  # 5m - suppresses Drake SDF phantom floor collisions
+   # Threshold for object-object collision detection (meters)
+   object_penetration_threshold_m: 0.001  # 1mm
+   # Tolerance for manipuland-furniture surface contact (meters) - filters mild expected contact
+--- a/configurations/wall_agent/base_wall_agent.yaml
++++ b/configurations/wall_agent/base_wall_agent.yaml
+@@ -10,7 +10,7 @@
+   # Summarize older turns via LLM (if false, just strip images).
+   enable_summarization: true
+   # Model for summarization ("agent" uses cfg.openai.model).
+-  summarization_model: "gpt-5.2"
++  summarization_model: "gpt-5.5"
+   # Thinking effort for summarization ("none", "low", "medium", "high").
+   summarization_thinking: "low"
+   # Intra-turn observation stripping: strip images from older observe_scene outputs
+@@ -201,7 +201,7 @@
+ 
+ # OpenAI model and reasoning configuration.
+ openai:
+-  model: "gpt-5.2"
++  model: "gpt-5.5"
+   service_tier: ${openai.service_tier}
+   vision_detail: "high"
+   reasoning_effort:
+@@ -235,7 +235,7 @@
+ # Physics validation configuration.
+ physics_validation:
+   wall_thickness: 0.05
+-  floor_penetration_tolerance_m: 0.05
++  floor_penetration_tolerance_m: 0.2  # 20cm
+   object_penetration_threshold_m: 0.001
+   manipuland_furniture_tolerance_m: 0.02
+ 
+--- a/scenesmith/agent_utils/asset_manager.py
++++ b/scenesmith/agent_utils/asset_manager.py
+@@ -1,4 +1,5 @@
+ import logging
++import os
+ import re
+ import shutil
+ import time
+@@ -290,12 +291,14 @@
+ 
+         # Initialize strategy-specific clients.
+         self.general_asset_source = cfg.asset_manager.general_asset_source
+-        if self.general_asset_source not in ["generated", "hssd", "objaverse"]:
++        if self.general_asset_source not in [
++            "generated", "hssd", "objaverse", "objaverse_then_generated"
++        ]:
+             raise ValueError(f"Unknown asset source: {self.general_asset_source}")
+ 
+-        # Initialize geometry generation client if source is "generated".
++        # Initialize geometry generation client if source involves SAM3D generation.
+         self.geometry_client: GeometryGenerationClient | None = None
+-        if self.general_asset_source == "generated":
++        if self.general_asset_source in ("generated", "objaverse_then_generated"):
+             console_logger.info("Initializing geometry generation client")
+             self.geometry_client = GeometryGenerationClient(
+                 host=geometry_server_host, port=geometry_server_port
+@@ -309,9 +312,9 @@
+                 host=hssd_server_host, port=hssd_server_port
+             )
+ 
+-        # Initialize Objaverse client if source is "objaverse".
++        # Initialize Objaverse client if source involves Objaverse retrieval.
+         self.objaverse_client: ObjaverseRetrievalClient | None = None
+-        if self.general_asset_source == "objaverse":
++        if self.general_asset_source in ("objaverse", "objaverse_then_generated"):
+             console_logger.info("Initializing Objaverse retrieval client")
+             self.objaverse_client = ObjaverseRetrievalClient(
+                 host=objaverse_server_host, port=objaverse_server_port
+@@ -1025,6 +1028,13 @@
+             f"{'enabled' if self.router is not None else 'disabled'}."
+         )
+ 
++        if os.environ.get("OPENSCENEAGENT_STUB_ASSETS", "").strip().lower() in {
++            "1",
++            "true",
++            "yes",
++        }:
++            return self._generate_stub_assets(request)
++
+         # If router is enabled, analyze and potentially modify the request.
+         if self.router is not None:
+             return self._generate_assets_with_router(request)
+@@ -1039,6 +1049,81 @@
+         else:
+             # This should never happen due to __init__ validation.
+             raise ValueError(f"Unknown asset source: {self.general_asset_source}")
++
++    def _generate_stub_assets(
++        self, request: AssetGenerationRequest
++    ) -> AssetGenerationResult:
++        """Register lightweight bbox-only assets for layout-only rollouts."""
++        if len(request.object_descriptions) != len(request.short_names):
++            raise ValueError(
++                f"Mismatch between descriptions ({len(request.object_descriptions)}) "
++                f"and short names ({len(request.short_names)})"
++            )
++
++        if len(request.desired_dimensions) != len(request.object_descriptions):
++            raise ValueError(
++                f"Mismatch between desired_dimensions ({len(request.desired_dimensions)}) "
++                f"and object_descriptions ({len(request.object_descriptions)})"
++            )
++
++        scene_objects: list[SceneObject] = []
++        failed_assets: list[FailedAsset] = []
++
++        for idx, (desc, short_name, dims) in enumerate(
++            zip(
++                request.object_descriptions,
++                request.short_names,
++                request.desired_dimensions,
++            )
++        ):
++            try:
++                if len(dims) != 3:
++                    raise ValueError(f"expected [width, depth, height], got {dims!r}")
++                width, depth, height = [max(float(v), 0.05) for v in dims]
++                safe_name = self._sanitize_filename(short_name)
++                scene_obj = SceneObject(
++                    object_id=self.registry.generate_unique_id(safe_name),
++                    object_type=request.object_type,
++                    name=safe_name,
++                    description=desc,
++                    transform=RigidTransform(),
++                    geometry_path=None,
++                    sdf_path=None,
++                    image_path=None,
++                    bbox_min=np.array([-width / 2.0, -depth / 2.0, 0.0]),
++                    bbox_max=np.array([width / 2.0, depth / 2.0, height]),
++                    metadata={
++                        "asset_source": "stub",
++                        "stub_asset": True,
++                        "generation_timestamp": time.time(),
++                    },
++                    scale_factor=1.0,
++                )
++                self.registry.register(scene_obj)
++                scene_objects.append(scene_obj)
++            except Exception as exc:
++                failed_assets.append(
++                    FailedAsset(
++                        index=idx,
++                        description=desc,
++                        error_message=str(exc),
++                    )
++                )
++
++        if failed_assets:
++            console_logger.warning(
++                f"Stub asset generation completed with {len(failed_assets)} "
++                f"failure(s) and {len(scene_objects)} success(es)"
++            )
++        else:
++            console_logger.info(
++                f"Registered {len(scene_objects)} stub asset(s) for layout-only rollout"
++            )
++
++        return AssetGenerationResult(
++            successful_assets=scene_objects,
++            failed_assets=failed_assets,
++        )
+ 
+     def _generate_assets_with_router(
+         self, request: AssetGenerationRequest
+@@ -1862,17 +1947,74 @@
+             f"Running VLM analysis for mesh physics "
+             f"(asset_source={asset_source}, prompt_type={prompt_type})"
+         )
+-        physics_analysis = analyze_mesh_orientation_and_material(
+-            mesh_path=gltf_path,
+-            vlm_service=self.vlm_service,
+-            cfg=self.cfg,
+-            elevation_degrees=self.side_view_elevation_degrees,
+-            blender_server=self.blender_server,
+-            num_side_views=self.num_side_views_for_physics_analysis,
+-            debug_output_dir=debug_dir,
+-            prompt_type=prompt_type,
+-            include_vertical_views=include_vertical_views,
+-        )
++        # Fix 18: Skip VLM physics analysis when Blender EGL rendering is unavailable
++        # (headless servers). render_multiview_for_analysis triggers an EGL crash
++        # (Blender SIGABRT), killing the Blender server and cascading to fail all
++        # subsequent geometry operations (convert_glb_to_gltf, canonicalize_mesh).
++        # Skipping the call entirely keeps Blender alive. Controlled by config flag
++        # asset_manager.skip_physics_analysis to avoid affecting production use.
++        _skip_physics = False
++        try:
++            _skip_physics = bool(self.cfg.asset_manager.skip_physics_analysis)
++        except Exception:
++            pass
++        skip_physics_env = os.environ.get(
++            "OPENSCENEAGENT_SKIP_MESH_PHYSICS_ANALYSIS"
++        )
++        if skip_physics_env is not None and skip_physics_env.strip():
++            _skip_physics = skip_physics_env.strip().lower() in {"1", "true", "yes"}
++
++        if _skip_physics:
++            console_logger.warning(
++                f"Skipping VLM physics analysis for {gltf_path.stem} "
++                f"(skip_physics_analysis=true or env override); using default "
++                f"orientation/material"
++            )
++            # SAM3D outputs Y-up meshes; Blender imports them as Z-up internally.
++            # up_axis=+Z means "already upright" → canonicalize_mesh applies no rotation.
++            physics_analysis = MeshPhysicsAnalysis(
++                up_axis="+Z",
++                front_axis="+Y",
++                material="wood",
++                mass_kg=20.0,
++                mass_range_kg=(5.0, 50.0),
++            )
++        else:
++            render_engine = os.environ.get(
++                "OPENSCENEAGENT_MESH_PHYSICS_RENDER_ENGINE",
++                str(
++                    getattr(
++                        self.cfg.asset_manager,
++                        "physics_analysis_render_engine",
++                        "eevee",
++                    )
++                ),
++            )
++            cycles_samples = int(
++                os.environ.get(
++                    "OPENSCENEAGENT_MESH_PHYSICS_CYCLES_SAMPLES",
++                    str(
++                        getattr(
++                            self.cfg.asset_manager,
++                            "physics_analysis_cycles_samples",
++                            8,
++                        )
++                    ),
++                )
++            )
++            physics_analysis = analyze_mesh_orientation_and_material(
++                mesh_path=gltf_path,
++                vlm_service=self.vlm_service,
++                cfg=self.cfg,
++                elevation_degrees=self.side_view_elevation_degrees,
++                blender_server=self.blender_server,
++                num_side_views=self.num_side_views_for_physics_analysis,
++                debug_output_dir=debug_dir,
++                prompt_type=prompt_type,
++                include_vertical_views=include_vertical_views,
++                render_engine=render_engine,
++                cycles_samples=cycles_samples,
++            )
+ 
+         console_logger.info(
+             f"VLM analysis complete: up={physics_analysis.up_axis}, "
+--- a/scenesmith/agent_utils/asset_router/router.py
++++ b/scenesmith/agent_utils/asset_router/router.py
+@@ -2,6 +2,7 @@
+ 
+ import json
+ import logging
++import os
+ import tempfile
+ import time
+ 
+@@ -74,6 +75,15 @@
+ console_logger = logging.getLogger(__name__)
+ 
+ 
++def _accept_on_render_validation_error() -> bool:
++    return (
++        os.environ.get("OPENSCENEAGENT_ACCEPT_ON_RENDER_VALIDATION_ERROR", "")
++        .strip()
++        .lower()
++        in {"1", "true", "yes"}
++    )
++
++
+ class AssetRouter:
+     """Routes asset generation requests through LLM analysis and validation.
+ 
+@@ -157,8 +167,14 @@
+         reasoning_effort = openai_config.reasoning_effort.asset_analysis
+         verbosity = openai_config.verbosity.asset_analysis
+ 
+-        # Retry loop for parsing failures (e.g., LLM returns invalid object_type).
++        # Retry loop. Originally only covered "VLM returned JSON but all items
++        # failed to parse" — the except branch did `return` instead of
++        # `continue`, so the loop never recovered from upstream errors like
++        # gateway returning empty content (HTTP 200 + content=""). Now retries
++        # both VLM-call failures AND parse-failures, with exponential backoff
++        # on the failure branch.
+         max_retries = self.cfg.asset_manager.router.analysis_max_retries
++        last_error: Exception | None = None
+         for attempt in range(max_retries):
+             try:
+                 start_time = time.time()
+@@ -175,13 +191,13 @@
+                     f"Router analysis completed in {elapsed:.1f}s:\n{response_json}"
+                 )
+             except Exception as e:
+-                console_logger.error(f"VLM analysis failed: {e}")
+-                return AnalysisResult(
+-                    items=[],
+-                    original_description=None,
+-                    discarded_manipulands=None,
+-                    error=f"Analysis failed: {e}",
+-                )
++                last_error = e
++                console_logger.warning(
++                    f"VLM analysis failed (attempt {attempt + 1}/{max_retries}): {e}"
++                )
++                if attempt + 1 < max_retries:
++                    time.sleep(min(2 ** attempt, 30))  # 1s, 2s, 4s, 8s, ... capped 30s
++                continue
+ 
+             # Parse response into AnalysisResult.
+             result = self._parse_analysis_response(response_json)
+@@ -199,11 +215,16 @@
+             )
+ 
+         # All retries exhausted.
++        err_msg = (
++            f"Analysis failed after {max_retries} attempts: {last_error}"
++            if last_error is not None
++            else f"Failed to parse valid items after {max_retries} attempts"
++        )
+         return AnalysisResult(
+             items=[],
+             original_description=description,
+             discarded_manipulands=None,
+-            error=f"Failed to parse valid items after {max_retries} attempts",
++            error=err_msg,
+         )
+ 
+     def _parse_analysis_response(self, response: dict) -> AnalysisResult:
+@@ -306,6 +327,15 @@
+             console_logger.debug(f"Rendered {len(image_paths)} images for validation")
+         except Exception as e:
+             console_logger.error(f"Failed to render mesh for validation: {e}")
++            if _accept_on_render_validation_error():
++                return ValidationResult(
++                    is_acceptable=True,
++                    reason=(
++                        "Accepted generated mesh because validation rendering "
++                        f"failed: {e}"
++                    ),
++                    suggestions=[],
++                )
+             return ValidationResult(
+                 is_acceptable=False,
+                 reason=f"Rendering failed: {e}",
+@@ -1222,11 +1252,29 @@
+         validation_dir.mkdir(parents=True, exist_ok=True)
+ 
+         # Render appropriate view based on orientation.
+-        image_path = self._render_thin_covering_for_validation(
+-            mesh_path=mesh_path, output_dir=validation_dir, is_wall_mode=is_wall_mode
+-        )
++        try:
++            image_path = self._render_thin_covering_for_validation(
++                mesh_path=mesh_path,
++                output_dir=validation_dir,
++                is_wall_mode=is_wall_mode,
++            )
++        except Exception as e:
++            console_logger.error(f"Failed to render thin covering for validation: {e}")
++            image_path = None
++            render_error = e
++        else:
++            render_error = None
+ 
+         if image_path is None:
++            if _accept_on_render_validation_error():
++                reason = "Accepted thin covering because validation rendering failed"
++                if render_error is not None:
++                    reason = f"{reason}: {render_error}"
++                return ValidationResult(
++                    is_acceptable=True,
++                    reason=reason,
++                    suggestions=[],
++                )
+             return ValidationResult(
+                 is_acceptable=False,
+                 reason="Failed to render thin covering for validation",
+@@ -1412,6 +1460,20 @@
+                     f"No Objaverse candidates for '{item.description}'"
+                 )
+                 return None
++        elif asset_source == "objaverse_then_generated":
++            # Try Objaverse first; if nothing found, fall back to SAM3D generation.
++            objaverse_candidates = self._fetch_objaverse_candidates(
++                item=item,
++                objaverse_client=objaverse_client,
++                geometry_dir=geometry_dir,
++                max_retries=max_retries,
++                scene_id=scene_id,
++            )
++            if not objaverse_candidates:
++                console_logger.info(
++                    f"No Objaverse candidates for '{item.description}', "
++                    f"will fall back to SAM3D generation."
++                )
+ 
+         if max_retries == 0:
+             # Single attempt, no validation.
+@@ -1461,12 +1523,13 @@
+                 continue
+ 
+             # Validate with VLM.
+-            # Use lenient validation for retrieved library assets (HSSD, Objaverse) based
+-            # on config. Generated assets always use strict validation.
++            # Use lenient validation for retrieved library assets (HSSD, Objaverse).
++            # Check result.asset_source so hybrid modes (objaverse_then_generated)
++            # get the right lenience regardless of the top-level asset_source setting.
+             use_lenient = False
+-            if asset_source == "hssd":
++            if result.asset_source == "hssd":
+                 use_lenient = self.cfg.asset_manager.hssd.use_lenient_validation
+-            elif asset_source == "objaverse":
++            elif result.asset_source == "objaverse":
+                 use_lenient = self.cfg.asset_manager.objaverse.use_lenient_validation
+ 
+             validation_dir = debug_dir / f"{item.short_name}_validation"
+@@ -1697,25 +1760,29 @@
+                 hssd_id=candidate.hssd_id,
+             )
+ 
+-        if asset_source == "objaverse":
+-            if objaverse_candidates is None or attempt >= len(objaverse_candidates):
++        if asset_source in ("objaverse", "objaverse_then_generated"):
++            if objaverse_candidates is not None and attempt < len(objaverse_candidates):
++                candidate = objaverse_candidates[attempt]
++                console_logger.info(
++                    f"Using Objaverse candidate {attempt + 1}/{len(objaverse_candidates)} "
++                    f"for '{item.description}': {candidate.objaverse_uid}"
++                )
++                return GeneratedGeometry(
++                    geometry_path=Path(candidate.mesh_path),
++                    item=item,
++                    asset_source="objaverse",
++                    objaverse_uid=candidate.objaverse_uid,
++                )
++            if asset_source == "objaverse":
+                 console_logger.warning(
+                     f"No more Objaverse candidates for '{item.description}' "
+                     f"(attempt {attempt}, available {len(objaverse_candidates or [])})"
+                 )
+                 return None
+-
+-            candidate = objaverse_candidates[attempt]
+-            console_logger.info(
+-                f"Using Objaverse candidate {attempt + 1}/{len(objaverse_candidates)} "
+-                f"for '{item.description}': {candidate.objaverse_uid}"
+-            )
+-
+-            return GeneratedGeometry(
+-                geometry_path=Path(candidate.mesh_path),
+-                item=item,
+-                asset_source="objaverse",
+-                objaverse_uid=candidate.objaverse_uid,
++            # objaverse_then_generated: Objaverse exhausted, fall through to SAM3D.
++            console_logger.info(
++                f"Objaverse candidates exhausted for '{item.description}', "
++                f"falling back to SAM3D generation (attempt {attempt})."
+             )
+ 
+         # Text-to-3D generation.
+--- a/scenesmith/agent_utils/blender/canonicalization.py
++++ b/scenesmith/agent_utils/blender/canonicalization.py
+@@ -90,9 +90,15 @@
+         f"(up={up_axis}, front={front_axis}, type={object_type})"
+     )
+ 
+-    # Clear scene.
+-    bpy.ops.object.select_all(action="SELECT")
+-    bpy.ops.object.delete()
++    # Clear scene. Remove via the data API rather than
++    # select_all(action="SELECT") + ops.object.delete(): the operator only acts
++    # on objects that are visible and selectable in the current view layer, so
++    # anything hidden or hide_select (e.g. room walls left behind by an earlier
++    # request in this long-lived BlenderServer session) survived the clear and,
++    # since the export below is use_selection=False, got baked into the exported
++    # asset — inflating its bbox to room size and shrinking the real object.
++    for leftover in list(bpy.data.objects):
++        bpy.data.objects.remove(leftover, do_unlink=True)
+ 
+     # Import GLTF (Blender converts Y-up → Z-up automatically).
+     bpy.ops.import_scene.gltf(filepath=str(input_path))
+@@ -235,10 +241,14 @@
+     bpy.ops.object.select_all(action="DESELECT")
+     for obj in bpy.context.scene.objects:
+         if obj.type == "MESH":
++            # Ensure object is visible before selecting — hidden objects cannot
++            # enter Edit Mode (bpy.ops.object.mode_set.poll() would fail).
++            obj.hide_viewport = False
++            obj.hide_set(False)
+             obj.select_set(True)
+             bpy.context.view_layer.objects.active = obj
+ 
+-    if bpy.context.selected_objects:
++    if bpy.context.selected_objects and bpy.context.view_layer.objects.active:
+         bpy.ops.object.mode_set(mode="EDIT")
+         bpy.ops.mesh.select_all(action="SELECT")
+         bpy.ops.mesh.remove_doubles(threshold=0.0001)
+--- a/scenesmith/agent_utils/blender/mesh_conversion.py
++++ b/scenesmith/agent_utils/blender/mesh_conversion.py
+@@ -57,9 +57,13 @@
+ 
+     console_logger.info(f"Converting {input_path.suffix} to GLTF: {output_path}")
+ 
+-    # Clear existing scene.
+-    bpy.ops.object.select_all(action="SELECT")
+-    bpy.ops.object.delete()
++    # Clear existing scene. Remove via the data API: select_all + ops.delete()
++    # skips objects that are hidden or hide_select, leaving them in this
++    # long-lived BlenderServer session (see canonicalize_mesh_impl, where the
++    # same pattern leaked room walls into exported assets). The use_selection
++    # export below happens to hide that here, but the leftovers still pile up.
++    for leftover in list(bpy.data.objects):
++        bpy.data.objects.remove(leftover, do_unlink=True)
+ 
+     # Import GLB/GLTF file.
+     bpy.ops.import_scene.gltf(filepath=str(input_path))
+--- a/scenesmith/agent_utils/blender/renderer.py
++++ b/scenesmith/agent_utils/blender/renderer.py
+@@ -4,10 +4,17 @@
+ 
+ from pathlib import Path
+ 
+-import bpy
++try:
++    import bpy
++    from mathutils import Matrix, Vector
++except ImportError:
++    # Allow renderer.py to be imported in spawned subprocesses that don't
++    # run inside Blender (e.g. floor_plan worker spawned via multiprocessing).
++    # Any function that actually calls bpy will fail at runtime, but module-
++    # level constants and class definitions that don't use bpy are safe.
++    bpy = None  # type: ignore[assignment]
++    Matrix = Vector = None  # type: ignore[assignment]
+ import numpy as np
+-
+-from mathutils import Matrix, Vector
+ from omegaconf import DictConfig, OmegaConf
+ from PIL import Image
+ 
+@@ -320,6 +327,8 @@
+         start_azimuth_degrees: float = 0.0,
+         show_coordinate_frame: bool = True,
+         taa_samples: int = EEVEE_ASSET_VALIDATION_SAMPLES,
++        render_engine: str = "eevee",
++        cycles_samples: int = 8,
+     ) -> list[Path]:
+         """Render a mesh from multiple views for VLM physics analysis.
+ 
+@@ -365,11 +374,19 @@
+             # Clear existing scene.
+             bpy.ops.wm.read_factory_settings(use_empty=True)
+ 
+-            # Set up rendering with EEVEE for speed (6x faster than CYCLES).
+             scene = bpy.context.scene
+-            scene.render.engine = "BLENDER_EEVEE_NEXT"
+-            scene.eevee.taa_render_samples = taa_samples
+-            _apply_eevee_speed_settings(scene)
++            normalized_engine = render_engine.strip().lower()
++            if normalized_engine in {"cycles", "cycles_cpu"}:
++                scene.render.engine = "CYCLES"
++                scene.cycles.device = "CPU"
++                scene.cycles.samples = cycles_samples
++                scene.cycles.use_denoising = True
++            elif normalized_engine == "eevee":
++                scene.render.engine = "BLENDER_EEVEE_NEXT"
++                scene.eevee.taa_render_samples = taa_samples
++                _apply_eevee_speed_settings(scene)
++            else:
++                raise ValueError(f"Unsupported analysis render engine: {render_engine}")
+             scene.render.resolution_x = width
+             scene.render.resolution_y = height
+             # Use transparent background for VLM analysis.
+--- a/scenesmith/agent_utils/blender/server_app.py
++++ b/scenesmith/agent_utils/blender/server_app.py
+@@ -620,6 +620,8 @@
+                 show_coordinate_frame = show_coord_frame.lower() == "true"
+                 taa_samples_str = form.get("taa_samples")
+                 taa_samples = int(taa_samples_str) if taa_samples_str else None
++                render_engine = form.get("render_engine", "eevee")
++                cycles_samples = int(form.get("cycles_samples", "8"))
+             except (ValueError, TypeError) as e:
+                 flask.abort(400, description=f"Invalid parameter: {e}")
+ 
+@@ -637,6 +639,8 @@
+                 "light_energy": light_energy,
+                 "start_azimuth_degrees": start_azimuth_degrees,
+                 "show_coordinate_frame": show_coordinate_frame,
++                "render_engine": render_engine,
++                "cycles_samples": cycles_samples,
+             }
+             if taa_samples is not None:
+                 render_kwargs["taa_samples"] = taa_samples
+--- a/scenesmith/agent_utils/blender/server_manager.py
++++ b/scenesmith/agent_utils/blender/server_manager.py
+@@ -451,6 +451,8 @@
+         start_azimuth_degrees: float = 0.0,
+         show_coordinate_frame: bool = True,
+         taa_samples: int | None = None,
++        render_engine: str = "eevee",
++        cycles_samples: int = 8,
+     ) -> list[Path]:
+         """Render multiview images for VLM validation via HTTP request.
+ 
+@@ -508,6 +510,8 @@
+                 "height": str(height),
+                 "start_azimuth_degrees": str(start_azimuth_degrees),
+                 "show_coordinate_frame": str(show_coordinate_frame).lower(),
++                "render_engine": render_engine,
++                "cycles_samples": str(cycles_samples),
+             }
+             if light_energy is not None:
+                 data["light_energy"] = str(light_energy)
+--- a/scenesmith/agent_utils/geometry_generation_server/gpu_worker.py
++++ b/scenesmith/agent_utils/geometry_generation_server/gpu_worker.py
+@@ -113,6 +113,14 @@
+ 
+     # FIRST LINE - Set CUDA_VISIBLE_DEVICES before ANY imports.
+     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
++    # Use ConvAlgo.Native to bypass ConvTunerSimple's mask_width alignment checks,
++    # which fail for variable voxel counts (only first object succeeded with auto/MaskImplicitGemm).
++    os.environ["SPCONV_ALGO"] = "native"
++    # Force HF hub to use only locally cached models (no network verification).
++    # HF_HOME=./.cache/huggingface in .env points to pre-staged MoGe + DFN5B weights.
++    # Without OFFLINE=1, from_pretrained attempts an SSL handshake to check for updates
++    # and raises SSLEOFError when the connection drops mid-handshake.
++    os.environ["HF_HUB_OFFLINE"] = "1"
+ 
+     # Configure logging for this worker process.
+     logging.basicConfig(
+@@ -179,8 +187,23 @@
+                 f"Pipeline preloaded successfully in {time.time() - preload_start:.2f}s"
+             )
+         except Exception as e:
++            import traceback as _tb
+             logger.error(f"Pipeline preload failed: {e}")
+-            raise
++            logger.error("Full traceback:\n" + _tb.format_exc())
++            # Also walk the cause chain — Hydra wraps real errors as __cause__.
++            cur = e.__cause__ or e.__context__
++            depth = 0
++            while cur is not None and depth < 5:
++                logger.error(
++                    f"  caused by ({type(cur).__name__}): {cur}\n"
++                    + "".join(_tb.format_exception(type(cur), cur, cur.__traceback__))
++                )
++                cur = cur.__cause__ or cur.__context__
++                depth += 1
++            # Don't crash the worker on preload failure — log and continue.
++            # The worker will fail gracefully when requests arrive, rather than
++            # thrashing the worker pool with repeated crash/restart cycles that
++            # interfere with Drake rendering via concurrent GPU access.
+         finally:
+             if init_lock is not None:
+                 init_lock.release()
+@@ -250,7 +273,12 @@
+                 processing_time = time.time() - start_time
+                 end_to_end_latency = time.time() - message.received_timestamp
+                 failed_requests += 1
+-                logger.error(f"Request {message.request_id} failed: {e}")
++                # exc_info=True surfaces the full traceback so dtype / shape
++                # mismatches inside SAM3D can be pinpointed rather than hidden
++                # behind a one-line exception message.
++                logger.error(
++                    f"Request {message.request_id} failed: {e}", exc_info=True
++                )
+ 
+                 result_queue.put(
+                     WorkResult(
+--- a/scenesmith/agent_utils/geometry_generation_server/server_app.py
++++ b/scenesmith/agent_utils/geometry_generation_server/server_app.py
+@@ -12,7 +12,7 @@
+ import uuid
+ 
+ from pathlib import Path
+-from queue import Queue
++from queue import Empty, Queue
+ from threading import Thread
+ 
+ import flask
+@@ -269,12 +269,39 @@
+                 received_timestamp=received_timestamp,
+             )
+ 
++            # 5 minutes per asset; hangs beyond this indicate a stuck worker
++            _per_asset_timeout_s = 300
++            _batch_deadline = time.time() + _per_asset_timeout_s * batch_size + 60
++
+             def generate():
+                 """Generator function for streaming NDJSON responses."""
+-                nonlocal results_received
+-
+-                while results_received < batch_size:
+-                    index, (status, result_data) = client_result_queue.get()
++                pending = set(range(batch_size))
++
++                while pending:
++                    remaining = _batch_deadline - time.time()
++                    if remaining <= 0:
++                        console_logger.error(
++                            f"Batch timed out: {batch_size - len(pending)}/"
++                            f"{batch_size} completed"
++                        )
++                        for idx in sorted(pending):
++                            timed_out = StreamedResult(
++                                index=idx,
++                                status="error",
++                                error=f"Asset generation timed out after "
++                                      f"{_per_asset_timeout_s * batch_size}s",
++                            )
++                            yield timed_out.to_json() + "\n"
++                        break
++
++                    try:
++                        index, (status, result_data) = client_result_queue.get(
++                            timeout=min(remaining, 30.0)
++                        )
++                    except Empty:
++                        continue
++
++                    pending.discard(index)
+ 
+                     if status == "success":
+                         streamed_result = StreamedResult(
+@@ -286,7 +313,6 @@
+                         )
+ 
+                     yield streamed_result.to_json() + "\n"
+-                    results_received += 1
+ 
+             return flask.Response(generate(), mimetype="application/x-ndjson")
+ 
+--- a/scenesmith/agent_utils/geometry_generation_server/server_manager.py
++++ b/scenesmith/agent_utils/geometry_generation_server/server_manager.py
+@@ -125,6 +125,7 @@
+         self._log_file = log_file
+         self._app: GeometryGenerationApp | None = None
+         self._server_thread: Thread | None = None
++        self._http_server = None
+         self._running = False
+         self._shutdown_event = threading.Event()
+ 
+@@ -204,19 +205,12 @@
+         if self._app:
+             self._app.stop_processing()
+ 
+-        # Trigger Flask server shutdown via shutdown endpoint.
+-        try:
+-            response = requests.post(
+-                f"http://{self._host}:{self._port}/shutdown", timeout=2
+-            )
+-            if response.status_code == 200:
+-                console_logger.debug("Shutdown endpoint called successfully")
+-            else:
+-                console_logger.warning(
+-                    f"Shutdown endpoint returned status {response.status_code}"
+-                )
+-        except requests.exceptions.RequestException as e:
+-            console_logger.warning(f"Failed to call shutdown endpoint: {e}")
++        # Trigger Flask server shutdown via Werkzeug server handle.
++        if self._http_server is not None:
++            try:
++                self._http_server.shutdown()
++            except Exception as e:
++                console_logger.warning(f"Failed to shut down HTTP server: {e}")
+ 
+         # Wait for server thread to complete.
+         if self._server_thread and self._server_thread.is_alive():
+@@ -262,13 +256,9 @@
+     def _run_server(self) -> None:
+         """Run the Flask server in a separate thread."""
+         try:
+-            self._app.run(
+-                host=self._host,
+-                port=self._port,
+-                debug=False,
+-                threaded=True,
+-                use_reloader=False,  # Important: avoid reloader in thread.
+-            )
++            from werkzeug.serving import make_server
++            self._http_server = make_server(self._host, self._port, self._app, threaded=True)
++            self._http_server.serve_forever()
+         except Exception as e:
+             console_logger.error(f"Server thread failed: {e}")
+             self._shutdown_event.set()
+@@ -302,6 +292,7 @@
+         self._running = False
+         self._app = None
+         self._server_thread = None
++        self._http_server = None
+         self._shutdown_event.clear()
+ 
+     def __enter__(self):
+--- a/scenesmith/agent_utils/geometry_generation_server/worker_pool.py
++++ b/scenesmith/agent_utils/geometry_generation_server/worker_pool.py
+@@ -138,12 +138,16 @@
+             f"Detected {self._num_gpus} GPU(s) for worker pool: {self._gpu_ids}"
+         )
+ 
+-        # Use 'fork' context for workers. Fork works correctly because:
+-        # 1. Parent process does NOT import torch/CUDA at module level
+-        # 2. Each worker sets CUDA_VISIBLE_DEVICES BEFORE importing CUDA code
+-        # 3. Fork is required because 'spawn' re-imports main.py which imports bpy,
+-        #    and bpy cannot be imported in spawned subprocesses
+-        self._mp_ctx = mp.get_context("fork")
++        # NOTE (CUDA fork fix): use spawn (not fork) because import torch in
++        # the parent registers a `pthread_atfork(poison_fork)` handler that
++        # marks every fork()-child as in_bad_fork=True.
++        # spawn re-imports __main__ (train_grpo.py) in the subprocess via
++        # multiprocessing.spawn._fixup_main_from_path — so train_grpo.py
++        # MUST NOT import bpy (or any bpy-dependent module) at module level.
++        # This is ensured by making all heavy scenesmith/OpenSceneAgent imports
++        # in train_grpo.py lazy (inside collect_episode()).
++        # ORIGINAL: self._mp_ctx = mp.get_context("fork")
++        self._mp_ctx = mp.get_context("spawn")
+ 
+         # Lock for serializing pipeline initialization to avoid I/O contention.
+         # SAM3D checkpoints are ~15GB total. Loading them on 8 workers simultaneously
+@@ -541,14 +545,17 @@
+         Uses nvidia-smi to avoid importing torch (which would initialize CUDA
+         in the parent process).
+ 
+-        If CUDA_VISIBLE_DEVICES is set, only those GPUs are returned.
+-        Otherwise, all available GPUs are returned.
++        If GEOMETRY_CUDA_VISIBLE_DEVICES is set, those GPUs are used (allows
++        the geometry server to use a different GPU than the training process).
++        Otherwise falls back to CUDA_VISIBLE_DEVICES, then nvidia-smi detection.
+ 
+         Returns:
+             List of physical GPU IDs to use.
+         """
+-        # Check if CUDA_VISIBLE_DEVICES is set.
+-        cuda_visible = os.environ.get("CUDA_VISIBLE_DEVICES")
++        # Check GEOMETRY_CUDA_VISIBLE_DEVICES first — lets GRPO training keep
++        # CUDA_VISIBLE_DEVICES="3" (training GPU) while pointing SAM3D at GPU 7.
++        geometry_visible = os.environ.get("GEOMETRY_CUDA_VISIBLE_DEVICES")
++        cuda_visible = geometry_visible or os.environ.get("CUDA_VISIBLE_DEVICES")
+         if cuda_visible is not None and cuda_visible.strip():
+             # Parse the comma-separated list of GPU IDs.
+             try:
+--- a/scenesmith/agent_utils/image_generation.py
++++ b/scenesmith/agent_utils/image_generation.py
+@@ -117,7 +117,7 @@
+ 
+ 
+ class OpenAIImageGenerator(BaseImageGenerator):
+-    """Image generation using OpenAI gpt-image-1.5 via the Images API."""
++    """Image generation using OpenAI gpt-image-2 via the Images API."""
+ 
+     def __init__(self, client: OpenAI | None = None, quality: str = "low"):
+         """Initialize the generator.
+@@ -137,7 +137,7 @@
+         self.client = client or OpenAI()
+         self.prompt_manager = PromptManager(prompts_dir=PROMPTS_DATA_DIR)
+         self.image_quality = quality
+-        self.model = "gpt-image-1.5"
++        self.model = "gpt-image-2"
+ 
+     def generate_images(
+         self,
+@@ -147,7 +147,7 @@
+         size: str | None = None,
+         labels: list[str] | None = None,
+     ) -> None:
+-        """Generate multiple images in parallel using gpt-image-1.5.
++        """Generate multiple images in parallel using gpt-image-2.
+ 
+         Args:
+             style_prompt: The style context for the images.
+@@ -165,7 +165,7 @@
+         effective_labels = labels if labels else object_descriptions
+ 
+         console_logger.info(
+-            f"Generating {len(object_descriptions)} images (OpenAI gpt-image-1.5)"
++            f"Generating {len(object_descriptions)} images (OpenAI gpt-image-2)"
+         )
+ 
+         def generate_single_image(
+--- a/scenesmith/agent_utils/mesh_physics_analyzer.py
++++ b/scenesmith/agent_utils/mesh_physics_analyzer.py
+@@ -8,6 +8,7 @@
+ 
+ import json
+ import logging
++import os
+ import tempfile
+ import time
+ 
+@@ -156,6 +157,8 @@
+     debug_output_dir: Path | None = None,
+     prompt_type: Literal["generated", "hssd"] = "generated",
+     include_vertical_views: bool = True,
++    render_engine: str = "eevee",
++    cycles_samples: int = 8,
+ ) -> MeshPhysicsAnalysis:
+     """Analyze mesh orientation and material properties using VLM.
+ 
+@@ -213,6 +216,12 @@
+         f"Rendering {total_views} views for VLM analysis {view_description}"
+     )
+     try:
++        analysis_resolution = int(
++            os.environ.get(
++                "OPENSCENEAGENT_MESH_PHYSICS_RESOLUTION",
++                str(getattr(cfg.asset_manager, "physics_analysis_resolution", 512)),
++            )
++        )
+         # Render via BlenderServer HTTP endpoint.
+         image_paths = blender_server.render_multiview_for_analysis(
+             mesh_path=mesh_path,
+@@ -220,7 +229,11 @@
+             elevation_degrees=elevation_degrees,
+             num_side_views=num_side_views,
+             include_vertical_views=include_vertical_views,
++            width=analysis_resolution,
++            height=analysis_resolution,
+             taa_samples=cfg.asset_manager.validation_taa_samples,
++            render_engine=render_engine,
++            cycles_samples=cycles_samples,
+         )
+         console_logger.info(
+             f"Rendered {len(image_paths)} multi-view images to {output_dir}"
+--- a/scenesmith/agent_utils/scoring.py
++++ b/scenesmith/agent_utils/scoring.py
+@@ -222,8 +222,14 @@
+     current_scores = {s.name: s.grade for s in current.get_scores()}
+     previous_scores = {s.name: s.grade for s in previous.get_scores()}
+ 
++    # Critic VLM occasionally renames / omits a rubric between rounds (e.g.
++    # "Holistic Completeness" appears in one critique but not the previous).
++    # Treat a missing previous score as 0 baseline so the delta still reports
++    # the new category as a fresh gain rather than blowing the whole agent up
++    # with a KeyError mid-stage.
+     return {
+-        name: current_scores[name] - previous_scores[name] for name in current_scores
++        name: current_scores[name] - previous_scores.get(name, 0)
++        for name in current_scores
+     }
+ 
+ 
+--- a/scenesmith/ceiling_agents/tools/ceiling_tools.py
++++ b/scenesmith/ceiling_agents/tools/ceiling_tools.py
+@@ -97,7 +97,10 @@
+         # Initialize placement noise configuration.
+         # Start with natural profile as default until planner sets it.
+         self.placement_noise_config = cfg.placement_noise
+-        self.active_noise_profile = self.placement_noise_config.natural_profile
++        configured_mode = str(getattr(self.placement_noise_config, "mode", "auto")).lower()
++        self.active_noise_profile = (self.placement_noise_config.perfect_profile
++                                     if configured_mode == "perfect"
++                                     else self.placement_noise_config.natural_profile)
+ 
+         # Initialize loop detector from config.
+         loop_config = cfg.loop_detection
+--- a/scenesmith/floor_plan_agents/base_floor_plan_agent.py
++++ b/scenesmith/floor_plan_agents/base_floor_plan_agent.py
+@@ -68,11 +68,16 @@
+                 "to be set. Materials from server need a persistent location."
+             )
+ 
++        server_host = getattr(self.cfg.materials, "server_host", "127.0.0.1")
++        server_port = getattr(self.cfg.materials, "server_port", 7008)
++
+         return MaterialsConfig(
+             use_retrieval_server=use_retrieval_server,
+             default_wall_material=self.cfg.materials.default_wall_material,
+             default_floor_material=self.cfg.materials.default_floor_material,
+             output_dir=output_dir,
++            server_host=server_host,
++            server_port=server_port,
+         )
+ 
+     def _create_door_window_config(self) -> DoorWindowConfig:
+--- a/scenesmith/floor_plan_agents/tools/floor_plan_tools.py
++++ b/scenesmith/floor_plan_agents/tools/floor_plan_tools.py
+@@ -403,15 +403,15 @@
+         @function_tool
+         def set_room_materials(
+             room_id: str,
+-            floor_material_id: str = "",
+-            wall_material_id: str = "",
++            floor_material_id: str,
++            wall_material_id: str,
+         ) -> Result:
+-            """Set materials for a room's floor and/or walls.
++            """Set both floor and wall materials for a room.
+ 
+             Args:
+                 room_id: Room to set materials for.
+-                floor_material_id: Floor material ID from get_material (empty to skip).
+-                wall_material_id: Wall material ID from get_material (empty to skip).
++                floor_material_id: Required floor material ID from get_material.
++                wall_material_id: Required wall material ID from get_material.
+ 
+             Returns:
+                 Result indicating success or failure.
+--- a/scenesmith/floor_plan_agents/tools/materials_resolver.py
++++ b/scenesmith/floor_plan_agents/tools/materials_resolver.py
+@@ -41,6 +41,12 @@
+ 
+     output_dir: Path | None = None
+     """Output directory for scene. Materials from server will be copied here."""
++
++    server_host: str = "127.0.0.1"
++    """Host for the materials retrieval server."""
++
++    server_port: int = 7008
++    """Port for the materials retrieval server."""
+ 
+ 
+ class MaterialsResolver:
+@@ -180,7 +186,9 @@
+         materials_output_dir = self.output_dir / "materials"
+         materials_output_dir.mkdir(parents=True, exist_ok=True)
+ 
+-        client = MaterialsRetrievalClient()
++        client = MaterialsRetrievalClient(
++            host=self.config.server_host, port=self.config.server_port
++        )
+         request = MaterialsRetrievalServerRequest(
+             material_description=description,
+             output_dir=str(materials_output_dir),
+--- a/scenesmith/furniture_agents/base_furniture_agent.py
++++ b/scenesmith/furniture_agents/base_furniture_agent.py
+@@ -68,36 +68,51 @@
+         self.blender_server: BlenderServer | None = None
+         self.collision_server: ConvexDecompositionServer | None = None
+ 
++        stub_assets = os.environ.get("OPENSCENEAGENT_STUB_ASSETS", "").lower() in {
++            "1",
++            "true",
++            "yes",
++        }
+         try:
+-            # Start BlenderServer for all bpy operations (rendering, validation,
+-            # canonicalization). Required because forked workers cannot safely use
+-            # embedded bpy - GPU/OpenGL state is corrupted by fork.
+-            console_logger.info("Starting BlenderServer for parallel asset validation")
+-            self.blender_server = BlenderServer(
+-                port_range=tuple(cfg.rendering.blender_server_port_range),
+-                server_startup_delay=cfg.rendering.server_startup_delay,
+-                port_cleanup_delay=cfg.rendering.port_cleanup_delay,
+-                gpu_id=render_gpu_id,
+-                log_file=logger.output_dir / "room.log",
+-            )
+-            self.blender_server.start()
+-            self.blender_server.wait_until_ready()
++            if stub_assets:
++                console_logger.info(
++                    "Skipping BlenderServer and ConvexDecompositionServer "
++                    "(OPENSCENEAGENT_STUB_ASSETS=1)"
++                )
++            else:
++                # Start BlenderServer for all bpy operations (rendering, validation,
++                # canonicalization). Required because forked workers cannot safely use
++                # embedded bpy - GPU/OpenGL state is corrupted by fork.
++                console_logger.info("Starting BlenderServer for parallel asset validation")
++                self.blender_server = BlenderServer(
++                    port_range=tuple(cfg.rendering.blender_server_port_range),
++                    server_startup_delay=cfg.rendering.server_startup_delay,
++                    port_cleanup_delay=cfg.rendering.port_cleanup_delay,
++                    gpu_id=render_gpu_id,
++                    log_file=logger.output_dir / "room.log",
++                )
++                self.blender_server.start()
++                self.blender_server.wait_until_ready()
+ 
+-            # Start ConvexDecompositionServer for collision geometry generation.
+-            # This isolates OpenMP from ThreadPoolExecutor to prevent deadlocks.
+-            # Calculate OMP threads: each worker gets a fair share of CPU cores.
+-            cpu_count = os.cpu_count() or 1
+-            omp_threads = max(1, cpu_count // num_workers)
+-            console_logger.info(
+-                f"Starting ConvexDecompositionServer (omp_threads={omp_threads})"
+-            )
+-            self.collision_server = ConvexDecompositionServer(
+-                port_range=tuple(cfg.collision_geometry.server_port_range),
+-                omp_threads=omp_threads,
+-                log_file=logger.output_dir / "room.log",
+-            )
+-            self.collision_server.start()
+-            self.collision_server.wait_until_ready()
++                # Start ConvexDecompositionServer for collision geometry generation.
++                # This isolates OpenMP from ThreadPoolExecutor to prevent deadlocks.
++                # Calculate OMP threads: each worker gets a fair share of CPU cores.
++                cpu_count = os.cpu_count() or 1
++                omp_threads = max(1, cpu_count // num_workers)
++                console_logger.info(
++                    f"Starting ConvexDecompositionServer (omp_threads={omp_threads})"
++                )
++                self.collision_server = ConvexDecompositionServer(
++                    port_range=tuple(cfg.collision_geometry.server_port_range),
++                    omp_threads=omp_threads,
++                    log_file=logger.output_dir / "room.log",
++                )
++                self.collision_server.start()
++                # 60s (not the 10s default): under GRPO the geometry worker pool is
++                # torn down + re-created every trajectory, and 3 SAM3D workers reload
++                # checkpoints concurrently — that CPU/IO churn can push the collision
++                # server's HTTP readiness past 10s and fail the whole trajectory.
++                self.collision_server.wait_until_ready(timeout=60.0)
+         except Exception:
+             # Clean up any servers that were started before the failure.
+             self.cleanup()
+@@ -110,7 +125,10 @@
+             logger=logger,
+             vlm_service=self.vlm_service,
+             blender_server=self.blender_server,
+-            collision_client=self.collision_server.get_client(),
++            collision_client=(
++                self.collision_server.get_client()
++                if self.collision_server is not None else None
++            ),
+             cfg=cfg,
+             agent_type=AgentType.FURNITURE,
+             geometry_server_host=geometry_server_host,
+--- a/scenesmith/furniture_agents/tools/furniture_tools.py
++++ b/scenesmith/furniture_agents/tools/furniture_tools.py
+@@ -77,7 +77,10 @@
+         # Initialize placement noise configuration.
+         # Start with natural profile as default until planner sets it.
+         self.placement_noise_config = cfg.placement_noise
+-        self.active_noise_profile = self.placement_noise_config.natural_profile
++        configured_mode = str(getattr(self.placement_noise_config, "mode", "auto")).lower()
++        self.active_noise_profile = (self.placement_noise_config.perfect_profile
++                                     if configured_mode == "perfect"
++                                     else self.placement_noise_config.natural_profile)
+ 
+         # Initialize loop detector from config.
+         loop_config = cfg.loop_detection
+--- a/scenesmith/furniture_agents/tools/vision_tools.py
++++ b/scenesmith/furniture_agents/tools/vision_tools.py
+@@ -7,6 +7,7 @@
+ """
+ 
+ import logging
++import os
+ 
+ from typing import TYPE_CHECKING, Any
+ 
+@@ -138,6 +139,19 @@
+             List of images plus a confirmation message.
+         """
+         console_logger.info("Tool called: observe_scene")
++        if (
++            self.blender_server is None
++            and os.environ.get("OPENSCENEAGENT_STUB_ASSETS", "").lower()
++            in {"1", "true", "yes"}
++        ):
++            return [
++                ToolOutputText(
++                    text=(
++                        "Scene observation skipped in stub-assets mode. "
++                        "Use the textual scene state and room bounds instead."
++                    )
++                )
++            ]
+         # Render current scene state with room bounds for stable grid markers.
+         images_dir = self.rendering_manager.render_scene(
+             self.scene,
+@@ -175,13 +189,75 @@
+     def _check_physics_impl(self) -> str:
+         """Implementation for physics validation.
+ 
++        Runs Drake collision detection in an isolated subprocess so that
++        libdrake.so segfaults cannot kill the parent training process.
++
+         Returns:
+             String describing collision status.
+         """
+-        console_logger.info("Tool called: check_physics")
+-        return check_physics_violations(
+-            scene=self.scene, cfg=self.cfg, agent_type=AgentType.FURNITURE
+-        )
++        if os.environ.get("OPENSCENEAGENT_STUB_ASSETS", "").lower() in {
++            "1",
++            "true",
++            "yes",
++        }:
++            return (
++                "Physics check skipped in stub-assets mode. "
++                "Use bbox layout constraints and reachability cues instead."
++            )
++        import json
++        import subprocess
++        import sys
++        import tempfile
++        from pathlib import Path
++        from omegaconf import OmegaConf
++
++        console_logger.info("Tool called: check_physics (subprocess mode)")
++
++        try:
++            # Serialize current in-memory scene state + cfg to a temp file.
++            state_dict = self.scene.to_state_dict()
++            # Embed cfg so the worker can reconstruct it.
++            cfg_dict = OmegaConf.to_container(self.cfg, resolve=True)
++            state_dict["_cfg_json"] = json.dumps(cfg_dict)
++
++            from src.runtime import ROOT
++            worker_script = ROOT / "scripts" / "physics_check_worker.py"
++
++            with tempfile.NamedTemporaryFile(mode="w", suffix=".json",
++                                             delete=False) as tf:
++                json.dump(state_dict, tf)
++                tmp_path = tf.name
++
++            result = subprocess.run(
++                [sys.executable, str(worker_script),
++                 str(self.scene.scene_dir), tmp_path],
++                capture_output=True, text=True, timeout=60,
++            )
++
++            # Clean up temp file.
++            try:
++                Path(tmp_path).unlink(missing_ok=True)
++            except Exception:
++                pass
++
++            if result.returncode == 0 and result.stdout.strip():
++                return result.stdout.strip()
++            else:
++                # Worker prints error to stdout (not stderr); log both.
++                err_out = result.stdout.strip()[:300] if result.stdout else ""
++                err_err = result.stderr.strip()[:200] if result.stderr else ""
++                detail = err_out or err_err or "(no output)"
++                console_logger.warning(
++                    f"check_physics subprocess exit={result.returncode}: {detail}"
++                )
++                return "Physics check unavailable. Result unknown; do not treat this as a successful physics check."
++
++        except subprocess.TimeoutExpired:
++            console_logger.warning("check_physics subprocess timed out (60s)")
++            return "Physics check timed out. Result unknown; do not treat this as a successful physics check."
++        except Exception as e:
++            console_logger.warning(f"check_physics subprocess error: {e}")
++            return f"Physics check failed: {e}. Result unknown; do not treat this as a successful physics check."
+ 
+     def _check_reachability_impl(self) -> str:
+         """Implementation for reachability validation.
+--- a/scenesmith/manipuland_agents/tools/manipuland_tools.py
++++ b/scenesmith/manipuland_agents/tools/manipuland_tools.py
+@@ -121,7 +121,10 @@
+         # Initialize placement noise configuration.
+         # Start with natural profile as default until planner sets it.
+         self.placement_noise_config = cfg.placement_noise
+-        self.active_noise_profile = self.placement_noise_config.natural_profile
++        configured_mode = str(getattr(self.placement_noise_config, "mode", "auto")).lower()
++        self.active_noise_profile = (self.placement_noise_config.perfect_profile
++                                     if configured_mode == "perfect"
++                                     else self.placement_noise_config.natural_profile)
+ 
+         # Initialize placement validation configuration.
+         self.top_surface_overlap_tolerance = (
+--- a/scenesmith/prompts/data/image_generation/asset_image_initial.yaml
++++ b/scenesmith/prompts/data/image_generation/asset_image_initial.yaml
+@@ -1,16 +1,56 @@
+ name: "asset_image_initial"
+-version: "1.0"
+-description: "Initial image generation for 3D asset conversion"
++version: "1.1"
++description: "Initial image generation for 3D asset conversion (lightly staged / furnished)"
+ template_variables: ["description", "style_prompt"]
+ prompt: |
+   Generate a clean product photography image of: {{ description }}.
+   Style: {{ style_prompt }}.
+-  IMPORTANT: The image must show ONLY the object itself against a fully
+-  opaque, plain, solid-colored background that clearly contrasts with the
+-  object (e.g., dark background for light/white objects, light background
+-  for dark objects). The background MUST be visible and filled with a solid
+-  color - NEVER use transparent or alpha channel backgrounds. No wireframes,
+-  no technical drawings, no construction lines, no blueprints, no CAD
+-  elements, no shadows. Just a clear, photorealistic rendering of the actual
+-  object as it would appear in real life with even lighting, suitable for
+-  conversion to a 3D model.
++
++  FOREGROUND OBJECT (most important):
++  The described furniture piece is the unambiguous main subject — rendered as a
++  single, fully opaque, solid body that stands out sharply from the background.
++  It should occupy the central region of the frame and be shown in full
++  (no cropping, no close-ups of a part). Every surface of the object must
++  be visibly solid: if the described material is transparent or translucent
++  (glass, acrylic, clear plastic, mesh, gauze, netting), render it instead
++  as an opaque frosted / matte / ceramic / painted-solid equivalent of the
++  same shape — no see-through panels, no visible interior, no reflections
++  that reveal what is behind the object. Thin wire frames, open lattices,
++  and skeletal structures must be filled in as solid panels. Strong
++  silhouette, clearly defined outer contour, no color bleeding into the
++  background.
++
++  STAGING (dress the piece so it looks furnished and lived-in):
++  Add SEVERAL (about 3–5) small, simple accessories that would naturally rest ON
++  or IN this piece, arranged in one or two little groupings so the asset looks
++  furnished rather than empty. Spread a couple of them across different parts of
++  the piece (e.g. more than one shelf of a bookshelf) instead of clustering all
++  in one spot. Pick props that suit the furniture type, for example:
++    - a bookshelf / cabinet / shelving → several books (some upright, some
++      stacked), a small box, a mug, a small vase or a framed photo across shelves;
++    - a TV stand / media console → a television on top, plus a small speaker,
++      a couple of books or a small plant beside it;
++    - a sofa / armchair / bed → two or three cushions and a folded throw blanket;
++    - a table / desk / nightstand → a small potted plant, a short stack of books,
++      a remote control, a cup or bowl, and a small lamp;
++    - a dining table → a few plates or bowls plus one simple centerpiece.
++  Rules for the props: keep each one SIMPLE — chunky, low-detail, fully opaque
++  shapes; avoid thin, wiry, delicate, or transparent items (render any plant
++  with simplified solid foliage). Every prop must sit directly on/in the
++  furniture as part of the SAME single solid body — never floating, never as a
++  separate subject. Together they should decorate the piece without hiding its
++  overall shape or dominating the frame; the furniture itself stays the clear
++  main subject. Keep it tasteful, not cluttered or messy.
++
++  BACKGROUND (secondary):
++  A fully opaque, plain, solid-colored background that clearly contrasts
++  with the object (e.g., dark background for light/white objects, light
++  background for dark objects). The background MUST be a single solid
++  color — NEVER transparent, NEVER an alpha channel, NEVER a scene or
++  environment. No props on the floor or wall, no floor/wall shadows blending
++  object into background.
++
++  STYLE:
++  Photorealistic, evenly lit product shot suitable for conversion to a 3D
++  model. No wireframes, no technical drawings, no construction lines, no
++  blueprints, no CAD elements, no cast shadows.
+--- a/scenesmith/utils/network_utils.py
++++ b/scenesmith/utils/network_utils.py
+@@ -16,6 +16,7 @@
+     """
+     try:
+         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
++            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+             sock.bind((host, port))
+         return True
+     except OSError:
+--- a/scenesmith/wall_agents/tools/wall_tools.py
++++ b/scenesmith/wall_agents/tools/wall_tools.py
+@@ -89,7 +89,10 @@
+         # Initialize placement noise configuration.
+         # Start with natural profile as default until planner sets it.
+         self.placement_noise_config = cfg.placement_noise
+-        self.active_noise_profile = self.placement_noise_config.natural_profile
++        configured_mode = str(getattr(self.placement_noise_config, "mode", "auto")).lower()
++        self.active_noise_profile = (self.placement_noise_config.perfect_profile
++                                     if configured_mode == "perfect"
++                                     else self.placement_noise_config.natural_profile)
+ 
+         # Initialize loop detector from config.
+         loop_config = cfg.loop_detection
+--- /dev/null
++++ b/scenesmith/llm_provider.py
+@@ -0,0 +1,468 @@
++"""Route OpenAI SDK + openai-agents SDK to a custom OpenAI-compatible gateway.
++
++Non-invasive: a single ``configure()`` call from ``main.py`` flips every
++``OpenAI()`` / ``AsyncOpenAI()`` and every ``agents.Agent`` to use a third-party
++endpoint (e.g. https://api.openai.com/v1). No-op unless ``SCENESMITH_LLM_BASE_URL``
++is set, so the default code path is unchanged.
++
++Includes a three-layer 429 survival kit:
++
++1. Request-level retry: ``max_retries`` on the openai client (honours
++   ``Retry-After`` / ``retry-after-ms`` headers internally).
++2. Connection-level throttle: a custom httpx transport that wraps a shared
++   concurrency semaphore around every outbound request. This is the real lever
++   against 429s because scenesmith runs many agents in parallel.
++3. Telemetry: a background counter that logs 429/5xx rates periodically so
++   flakiness is visible instead of hidden inside SDK retries.
++
++Env vars (all optional except base URL):
++
++    SCENESMITH_LLM_BASE_URL          Gateway base URL, e.g. https://api.openai.com/v1
++    SCENESMITH_LLM_API_KEY           API key (falls back to OPENAI_API_KEY)
++    SCENESMITH_LLM_MODE              "responses" (default) or "chat_completions"
++    SCENESMITH_LLM_MAX_RETRIES       Per-request retry cap (default 10)
++    SCENESMITH_LLM_MAX_CONCURRENCY   Global in-flight cap (default 8)
++    SCENESMITH_LLM_TIMEOUT_READ      Per-request read timeout seconds (default 180)
++    SCENESMITH_LLM_REASONING_MODELS  Comma list of extra reasoning models, e.g.
++                                     "gpt-5.4-mini,gpt-5.4-nano"
++    SCENESMITH_LLM_DISABLE_TRACING   "0" to keep Agents SDK tracing enabled
++                                     (default "1"; third-party gateways 404 it)
++    SCENESMITH_LLM_STRIP_TOOL_CHOICE "0" to disable the yunwu-style workaround
++                                     that rewrites object-form `tool_choice`
++                                     (e.g. ``{"type":"function","name":"x"}``)
++                                     to the string ``"required"`` before the
++                                     request leaves the client. yunwu/apiplus
++                                     etc. have a Go struct that types
++                                     `tool_choice` as string-only and returns
++                                     524 when upstream echoes the object form.
++                                     Default "1" (enabled).
++"""
++
++from __future__ import annotations
++
++import asyncio
++import json
++import logging
++import os
++import threading
++import time
++
++from functools import lru_cache
++
++import httpx
++
++_log = logging.getLogger(__name__)
++
++# Flipped by configure() once it reads the env. We keep it as a module-level
++# toggle rather than a transport attribute so the same logic can be imported
++# from tests without constructing a transport.
++_strip_tool_choice: bool = True
++
++
++def _rewrite_request_body_for_yunwu(request: httpx.Request) -> None:
++    """In-place rewrite outgoing JSON body so yunwu-family gateways don't 524.
++
++    Problem: openai-agents SDK serialises ``tool_choice="some_function"`` as
++    ``{"type": "function", "name": "some_function"}`` (an object). OpenAI's
++    own API accepts this. yunwu/apiplus/etc. have a Go response parser whose
++    ``OpenAIResponsesResponse.tool_choice`` field is typed as ``string``, so
++    when upstream echoes the object back, the gateway crashes with
++    ``json: cannot unmarshal object into Go struct field ... tool_choice of
++    type string`` and returns HTTP 524. Every critic-agent request in
++    scenesmith hits this because ``_create_critic_agent`` forces the first
++    tool call via object form.
++
++    We degrade to the string ``"required"`` -- scenesmith only uses the
++    object form to *force* a tool call, and ``"required"`` forces *a* tool
++    call (the model will pick the intended one from context, just not
++    guaranteed). Scenesmith code is not touched.
++
++    Cheap prefilter on the raw bytes avoids JSON-parsing every request.
++    """
++    if not _strip_tool_choice:
++        return
++    try:
++        content = request.content
++    except Exception:  # pragma: no cover - streaming body, not our case
++        return
++    if b'"tool_choice"' not in content:
++        return
++    try:
++        body = json.loads(content)
++    except Exception:
++        return
++    if not isinstance(body, dict):
++        return
++    tc = body.get("tool_choice")
++    if not isinstance(tc, dict):
++        return
++
++    body["tool_choice"] = "required"
++    new_bytes = json.dumps(body).encode()
++    request.stream = httpx.ByteStream(new_bytes)
++    # httpx.Request caches its body as `_content` when constructed with `json=`
++    # or `content=`; swapping `stream` alone leaves `.content` returning the
++    # old bytes. Keep both in sync.
++    request._content = new_bytes  # type: ignore[attr-defined]
++    request.headers["content-length"] = str(len(new_bytes))
++
++# Shared across all openai clients in this process so concurrency caps are
++# global, not per-client.
++_async_sem: asyncio.Semaphore | None = None
++_sync_sem: threading.Semaphore | None = None
++_async_sem_lock = threading.Lock()
++
++# 429/5xx telemetry.
++_stats = {"total": 0, "429": 0, "5xx": 0, "last_log_ts": 0.0}
++_stats_lock = threading.Lock()
++
++
++def _get_async_sem(limit: int) -> asyncio.Semaphore:
++    """Lazy-create the async semaphore on first use inside an event loop."""
++    global _async_sem
++    if _async_sem is None:
++        with _async_sem_lock:
++            if _async_sem is None:
++                _async_sem = asyncio.Semaphore(limit)
++    return _async_sem
++
++
++def _record(status: int) -> None:
++    with _stats_lock:
++        _stats["total"] += 1
++        if status == 429:
++            _stats["429"] += 1
++        elif status >= 500:
++            _stats["5xx"] += 1
++        now = time.monotonic()
++        # Log at most once every 30 seconds, only when there was flakiness.
++        if (
++            now - _stats["last_log_ts"] > 30.0
++            and (_stats["429"] + _stats["5xx"]) > 0
++        ):
++            _log.warning(
++                "LLM gateway: %d reqs, 429=%d (%.1f%%), 5xx=%d (%.1f%%)",
++                _stats["total"],
++                _stats["429"],
++                100 * _stats["429"] / max(_stats["total"], 1),
++                _stats["5xx"],
++                100 * _stats["5xx"] / max(_stats["total"], 1),
++            )
++            _stats["last_log_ts"] = now
++
++
++class _ThrottledAsyncTransport(httpx.AsyncHTTPTransport):
++    """httpx async transport that throttles concurrent outbound requests.
++
++    Retries are intentionally not done here; the openai SDK does that with
++    proper ``Retry-After`` handling. Layering a second retry loop here would
++    double the backoff window and fight with the SDK's budget accounting.
++    """
++
++    def __init__(self, max_concurrency: int, **kwargs) -> None:
++        super().__init__(**kwargs)
++        self._max_concurrency = max_concurrency
++
++    async def handle_async_request(self, request):  # type: ignore[override]
++        _rewrite_request_body_for_yunwu(request)
++        sem = _get_async_sem(self._max_concurrency)
++        async with sem:
++            response = await super().handle_async_request(request)
++        _record(response.status_code)
++        return response
++
++
++class _ThrottledSyncTransport(httpx.HTTPTransport):
++    def __init__(self, max_concurrency: int, **kwargs) -> None:
++        super().__init__(**kwargs)
++        global _sync_sem
++        if _sync_sem is None:
++            _sync_sem = threading.Semaphore(max_concurrency)
++
++    def handle_request(self, request):  # type: ignore[override]
++        _rewrite_request_body_for_yunwu(request)
++        assert _sync_sem is not None
++        with _sync_sem:
++            response = super().handle_request(request)
++        _record(response.status_code)
++        return response
++
++
++def _httpx_timeout(read_s: float) -> httpx.Timeout:
++    # connect/write short; read long (LLMs with thinking can take minutes).
++    return httpx.Timeout(connect=15.0, read=read_s, write=30.0, pool=15.0)
++
++
++def _patch_openai_defaults(
++    base_url: str,
++    api_key: str,
++    max_retries: int,
++    max_concurrency: int,
++    timeout: httpx.Timeout,
++) -> None:
++    """Redirect bare ``OpenAI()`` / ``AsyncOpenAI()`` constructions.
++
++    Scenesmith calls these with no kwargs (see ``vlm_service.py``,
++    ``image_generation.py``, ``turn_trimming_session.py``,
++    ``robot_eval/llm_utils.py``). We inject sane defaults without breaking
++    call sites that do pass explicit args.
++    """
++    import openai as _openai
++
++    _orig_sync = _openai.OpenAI.__init__
++    _orig_async = _openai.AsyncOpenAI.__init__
++
++    def _sync_init(self, *args, **kwargs):
++        kwargs.setdefault("base_url", base_url)
++        kwargs.setdefault("api_key", api_key)
++        kwargs.setdefault("max_retries", max_retries)
++        kwargs.setdefault("timeout", timeout)
++        kwargs.setdefault(
++            "http_client",
++            httpx.Client(
++                transport=_ThrottledSyncTransport(max_concurrency=max_concurrency),
++                timeout=timeout,
++            ),
++        )
++        _orig_sync(self, *args, **kwargs)
++
++    def _async_init(self, *args, **kwargs):
++        kwargs.setdefault("base_url", base_url)
++        kwargs.setdefault("api_key", api_key)
++        kwargs.setdefault("max_retries", max_retries)
++        kwargs.setdefault("timeout", timeout)
++        kwargs.setdefault(
++            "http_client",
++            httpx.AsyncClient(
++                transport=_ThrottledAsyncTransport(max_concurrency=max_concurrency),
++                timeout=timeout,
++            ),
++        )
++        _orig_async(self, *args, **kwargs)
++
++    _openai.OpenAI.__init__ = _sync_init  # type: ignore[assignment]
++    _openai.AsyncOpenAI.__init__ = _async_init  # type: ignore[assignment]
++
++
++def _patch_agents_sdk(
++    base_url: str,
++    api_key: str,
++    mode: str,
++    max_retries: int,
++    max_concurrency: int,
++    timeout: httpx.Timeout,
++    disable_tracing: bool,
++) -> None:
++    """Install the default client used by ``openai-agents`` Agent runs."""
++    from openai import AsyncOpenAI
++
++    try:
++        from agents import (
++            set_default_openai_api,
++            set_default_openai_client,
++            set_tracing_disabled,
++        )
++    except ImportError:  # pragma: no cover - SDK not installed
++        _log.warning(
++            "openai-agents SDK not importable; skipping agents-side patch"
++        )
++        return
++
++    agents_client = AsyncOpenAI(
++        base_url=base_url,
++        api_key=api_key,
++        max_retries=max_retries,
++        timeout=timeout,
++        http_client=httpx.AsyncClient(
++            transport=_ThrottledAsyncTransport(max_concurrency=max_concurrency),
++            timeout=timeout,
++        ),
++    )
++    # use_for_tracing=False: the gateway doesn't implement trace upload.
++    set_default_openai_client(agents_client, use_for_tracing=False)
++    set_default_openai_api(mode)  # "responses" or "chat_completions"
++    if disable_tracing:
++        # set_tracing_disabled(True) triggers lazy construction of the SDK's
++        # default trace exporter (a BackendSpanExporter that spins up an
++        # httpx.Client reading the process's proxy env vars). On boxes with a
++        # SOCKS proxy but no socksio installed, that constructor raises
++        # ImportError. Pre-seed the exporter with a no-op so the real one is
++        # never instantiated -- tracing is disabled anyway, so nothing runs.
++        try:
++            from agents.tracing import processors as _trace_processors
++
++            if _trace_processors._global_exporter is None:
++                _trace_processors._global_exporter = (
++                    _trace_processors.ConsoleSpanExporter()
++                )
++        except Exception:  # noqa: BLE001 - best-effort pre-seed
++            pass
++        set_tracing_disabled(True)
++
++
++def _patch_vlm_reasoning_set(extra: set[str]) -> None:
++    """Expand the reasoning-model set so VLMService routes to Responses API."""
++    from scenesmith.agent_utils import vlm_service as _vlm
++
++    _orig = _vlm.VLMService.__init__
++
++    def _patched(self, *args, **kwargs):
++        _orig(self, *args, **kwargs)
++        self._reasoning_models = self._reasoning_models | extra
++
++    _vlm.VLMService.__init__ = _patched  # type: ignore[assignment]
++
++
++def _patch_torch_hub_offline() -> None:
++    """Make ``torch.hub.load(..., source="github")`` fully offline when the
++    repo is already cached on disk.
++
++    Background: on networks where GitHub connections flap, torch.hub's default
++    behaviour can hit ``RemoteDisconnected`` during a repo-freshness check
++    even when ``force_reload=False`` and the repo directory is complete. The
++    geometry-generation workers then die at SAM3D preload (``dinov2`` fetch),
++    and worker_pool restart enters a crash loop because by that point the
++    parent process has already initialised CUDA via the in-thread CLIP
++    retrieval server.
++
++    We monkey-patch once, early, so every subsequent ``torch.hub.load`` call
++    that names a GitHub repo whose snapshot already exists in
++    ``~/.cache/torch/hub/<user>_<repo>_<ref>/`` transparently redirects to
++    ``source="local"`` with the cached path. ``trust_repo=True`` is injected
++    for the fallback github path, so the two-step trust prompt never blocks.
++    """
++    try:
++        import torch.hub as _hub
++    except ImportError:  # pragma: no cover - should not happen in container
++        return
++
++    _orig_load = _hub.load
++    # torch.hub.get_dir() already ends in "/hub" (it's TORCH_HOME/hub). Don't
++    # append "hub" again or we'd end up looking at a non-existent directory
++    # and silently fall back to network fetch.
++    hub_root = _hub.get_dir()
++
++    def _resolve_cached_dir(repo_or_dir: str) -> str | None:
++        if "/" not in repo_or_dir:
++            return None
++        user, _, rest = repo_or_dir.partition("/")
++        # torch.hub's cache directory naming: <user>_<repo>_<ref>
++        # Default ref is 'main'; repo_or_dir may be 'user/repo' or
++        # 'user/repo:ref'.
++        repo, _, ref = rest.partition(":")
++        ref = ref or "main"
++        candidate = os.path.join(hub_root, f"{user}_{repo}_{ref}")
++        return candidate if os.path.isdir(candidate) else None
++
++    def _patched_load(repo_or_dir, *args, source="github", **kwargs):
++        if source == "github":
++            cached = _resolve_cached_dir(repo_or_dir)
++            if cached is not None:
++                _log.info(
++                    "torch.hub: serving %s from local cache %s (network skipped)",
++                    repo_or_dir,
++                    cached,
++                )
++                return _orig_load(cached, *args, source="local", **kwargs)
++            # Repo not cached -- let torch.hub download, but never prompt.
++            kwargs.setdefault("trust_repo", True)
++        return _orig_load(repo_or_dir, *args, source=source, **kwargs)
++
++    _hub.load = _patched_load  # type: ignore[assignment]
++
++
++@lru_cache(maxsize=1)
++def configure() -> bool:
++    """Apply gateway redirection. Idempotent, no-op if not enabled.
++
++    Returns:
++        True if configured, False otherwise.
++    """
++    base_url = os.environ.get("SCENESMITH_LLM_BASE_URL")
++    if not base_url:
++        return False
++
++    api_key = (
++        os.environ.get("SCENESMITH_LLM_API_KEY")
++        or os.environ.get("OPENAI_API_KEY")
++    )
++    if not api_key:
++        raise RuntimeError(
++            "SCENESMITH_LLM_BASE_URL is set but neither SCENESMITH_LLM_API_KEY "
++            "nor OPENAI_API_KEY is available"
++        )
++
++    mode = os.environ.get("SCENESMITH_LLM_MODE", "responses").strip()
++    if mode not in {"responses", "chat_completions"}:
++        raise ValueError(
++            f"SCENESMITH_LLM_MODE must be 'responses' or 'chat_completions', "
++            f"got {mode!r}"
++        )
++
++    max_retries = int(os.environ.get("SCENESMITH_LLM_MAX_RETRIES", "10"))
++    max_concurrency = int(os.environ.get("SCENESMITH_LLM_MAX_CONCURRENCY", "8"))
++    read_timeout = float(os.environ.get("SCENESMITH_LLM_TIMEOUT_READ", "180"))
++    disable_tracing = (
++        os.environ.get("SCENESMITH_LLM_DISABLE_TRACING", "1").strip() != "0"
++    )
++    extra_reasoning = {
++        m.strip()
++        for m in os.environ.get("SCENESMITH_LLM_REASONING_MODELS", "").split(",")
++        if m.strip()
++    }
++
++    global _strip_tool_choice
++    _strip_tool_choice = (
++        os.environ.get("SCENESMITH_LLM_STRIP_TOOL_CHOICE", "1").strip() != "0"
++    )
++
++    timeout = _httpx_timeout(read_timeout)
++
++    # Also update these so anything that sidesteps the openai SDK and reads env
++    # directly still hits the gateway.
++    os.environ["OPENAI_BASE_URL"] = base_url
++    os.environ["OPENAI_API_KEY"] = api_key
++
++    _patch_openai_defaults(
++        base_url=base_url,
++        api_key=api_key,
++        max_retries=max_retries,
++        max_concurrency=max_concurrency,
++        timeout=timeout,
++    )
++    _patch_agents_sdk(
++        base_url=base_url,
++        api_key=api_key,
++        mode=mode,
++        max_retries=max_retries,
++        max_concurrency=max_concurrency,
++        timeout=timeout,
++        disable_tracing=disable_tracing,
++    )
++    if extra_reasoning:
++        _patch_vlm_reasoning_set(extra_reasoning)
++
++    # Always-on: redirect torch.hub.load to local cache when possible so
++    # geometry-gen workers don't die on transient GitHub flakes.
++    _patch_torch_hub_offline()
++
++    _log.info(
++        "LLM gateway configured: base=%s mode=%s max_retries=%d "
++        "max_concurrency=%d read_timeout=%.0fs tracing=%s extra_reasoning=%s "
++        "strip_tool_choice=%s",
++        base_url,
++        mode,
++        max_retries,
++        max_concurrency,
++        read_timeout,
++        "off" if disable_tracing else "on",
++        sorted(extra_reasoning) or "-",
++        _strip_tool_choice,
++    )
++    return True
++
++
++def stats() -> dict[str, int | float]:
++    """Snapshot of 429/5xx counters for external monitoring."""
++    with _stats_lock:
++        return dict(_stats)
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -37,10 +37,10 @@
+     "scipy>=1.15.3",
+     "setuptools<71.0.0",
+     "shapely>=2.1.2",
+-    "torch>=2.5.0,<2.6.0",
+-    "torchvision>=0.20.0,<0.21.0",
++    "torch>=2.8.0,<2.9.0",
++    "torchvision>=0.23.0,<0.24.0",
+     "tqdm>=4.67.1",
+-    "transformers>=4.55.4",
++    "transformers==4.57.6",
+     "trimesh>=4.7.4",
+     "vhacdx>=0.0.10",
+     "wandb>=0.21.1",

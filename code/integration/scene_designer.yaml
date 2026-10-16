@@ -1,0 +1,74 @@
+defaults:
+  - config
+  - _self_
+
+floor_plan_agent:
+  openai:
+    model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+    summarization_model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+  materials:
+    # Keep evaluation identical to data generation: resolve descriptions via
+    # the CLIP materials retrieval server rather than local defaults.
+    use_retrieval_server: true
+
+furniture_agent:
+  placement_noise:
+    mode: "perfect"
+  openai:
+    model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+    summarization_model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+  asset_manager:
+    # Always run multi-view VLM mesh analysis for canonical front direction.
+    skip_physics_analysis: false
+    router:
+      strategies:
+        generated:
+          # Match the data-generation router: validate and retry twice.
+          max_retries: 2
+        articulated:
+          # Match the data-generation router's articulated asset source.
+          enabled: true
+
+wall_agent:
+  placement_noise:
+    mode: "perfect"
+  openai:
+    model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+    summarization_model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+  asset_manager:
+    # Keep VLM front-axis analysis enabled outside wrapper scripts too.
+    skip_physics_analysis: false
+    router:
+      strategies:
+        generated:
+          max_retries: 2
+        articulated:
+          enabled: true
+
+ceiling_agent:
+  placement_noise:
+    mode: "perfect"
+  openai:
+    model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+    summarization_model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+  asset_manager:
+    # Keep VLM front-axis analysis enabled outside wrapper scripts too.
+    skip_physics_analysis: false
+    router:
+      strategies:
+        generated:
+          max_retries: 2
+        articulated:
+          enabled: true
+
+manipuland_agent:
+  placement_noise:
+    mode: "perfect"
+  openai:
+    model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+    summarization_model: ${oc.env:SCENESMITH_MODEL,gpt-5.2}
+  asset_manager:
+    router:
+      strategies:
+        articulated:
+          enabled: false

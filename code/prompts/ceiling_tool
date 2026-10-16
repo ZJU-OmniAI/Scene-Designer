@@ -1,0 +1,37 @@
+Tools available to the ceiling-fixture designer. Field names, types, enums, ranges strictly enforced.
+
+# Asset generation
+
+- generate_ceiling_assets(object_descriptions: list[str], short_names: list[str], desired_dimensions: list[[w,d,h]], style_context: str = "") -> {success, assets: [{object_id, width, depth, height}]}
+  Batch-generate ceiling-mounted assets. All three list args MUST have equal length.
+  desired_dimensions: [width, depth, height], where height = hang distance below ceiling.
+
+# Placement
+
+- place_ceiling_object(asset_id: str, position_x: float, position_y: float, rotation_degrees: float = 0.0) -> Result
+  Place an asset on the ceiling plane.
+    position_x / position_y: meters in room coordinates (NOT wall-local).
+    rotation_degrees: rotation around Z axis.
+  asset_id MUST be an object_id returned by an earlier generate_ceiling_assets.
+  MUST be within room_bounds; object's top is automatically flush with ceiling.
+
+# Correction
+
+- move_ceiling_object(object_id: str, position_x: float, position_y: float, rotation_degrees: float = 0.0) -> Result
+
+- remove_ceiling_object(object_id: str) -> Result
+
+- rescale_ceiling_object(object_id: str, scale_factor: float) -> Result
+  scale_factor > 0 and != 1.0. Affects all instances of the asset.
+
+# Validation
+
+- check_physics() -> str
+  Run the physics/collision check after placement or correction. Use its
+  result to detect ceiling-object penetration and other scene collisions.
+
+# Strict rules
+
+- position_x / position_y are in room XY (same frame as furniture), NOT wall-local.
+- Z is implicit: the object hangs from the ceiling; don't try to pass z.
+- asset_id values must match those produced by generate_ceiling_assets exactly, postfixes included.

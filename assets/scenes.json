@@ -1,0 +1,112 @@
+[
+  {
+    "id": "bedroom",
+    "title": "Master Bedroom",
+    "zh": "宁静主卧",
+    "category": "Bedroom",
+    "prompt": "Design a serene master bedroom centered on a queen bed with matching nightstands and reading lamps, a dresser against the opposite wall, and a soft rug underfoot for a calm.",
+    "order": 1,
+    "video": "assets/videos/bedroom.mp4",
+    "poster": "assets/images/bedroom.webp",
+    "layout": "assets/images/bedroom_layout.webp"
+  },
+  {
+    "id": "kitchen_dining",
+    "title": "Kitchen & Dining Room",
+    "zh": "家庭餐厨",
+    "category": "Kitchen",
+    "prompt": "Create a family kitchen built for cooking together - plenty of cabinet storage, a range and fridge grouped for an efficient work triangle, and a dining table with chairs for everyday meals.",
+    "order": 2,
+    "video": "assets/videos/kitchen_dining.mp4",
+    "poster": "assets/images/kitchen_dining.webp",
+    "layout": "assets/images/kitchen_dining_layout.webp"
+  },
+  {
+    "id": "bathroom",
+    "title": "Spa Bathroom",
+    "zh": "水疗浴室",
+    "category": "Bathroom",
+    "prompt": "Create a spa-like bathroom centered on a freestanding soaking tub, with a separate shower, a sleek vanity with a large mirror, and calm, minimal finishes.",
+    "order": 3,
+    "video": "assets/videos/bathroom.mp4",
+    "poster": "assets/images/bathroom.webp",
+    "layout": "assets/images/bathroom_layout.webp"
+  },
+  {
+    "id": "dining",
+    "title": "Family Dining Room",
+    "zh": "温馨餐厅",
+    "category": "Dining",
+    "prompt": "Create a warm family dining room with a sturdy wooden table and six chairs, a buffet for dishes and linens, and soft overhead lighting for everyday dinners.",
+    "order": 4,
+    "video": "assets/videos/dining.mp4",
+    "poster": "assets/images/dining.webp",
+    "layout": "assets/images/dining_layout.webp"
+  },
+  {
+    "id": "kitchen_sft_rl",
+    "title": "Contemporary Kitchen",
+    "zh": "现代厨房 · 一",
+    "category": "Kitchen",
+    "prompt": "Design a compact contemporary kitchen with a range, refrigerator, and sink arranged efficiently, generous base cabinets, a narrow preparation island, and two stools for casual breakfasts.",
+    "order": 5,
+    "video": "assets/videos/kitchen_sft_rl.mp4",
+    "poster": "assets/images/kitchen_sft_rl.webp",
+    "layout": "assets/images/kitchen_sft_rl_layout.webp"
+  },
+  {
+    "id": "living_sft_rl",
+    "title": "Living Room",
+    "zh": "会客客厅 · 一",
+    "category": "Living",
+    "prompt": "Create a relaxed conversation-focused living room with a sofa and two armchairs around a coffee table, a media console against one wall, and a floor lamp beside the seating area.",
+    "order": 6,
+    "video": "assets/videos/living_sft_rl.mp4",
+    "poster": "assets/images/living_sft_rl.webp",
+    "layout": "assets/images/living_sft_rl_layout.webp"
+  },
+  {
+    "id": "office_sft_rl",
+    "title": "Home Office",
+    "zh": "专注办公 · 一",
+    "category": "Office",
+    "prompt": "Design a focused home office with a broad desk facing the window, an ergonomic chair, closed storage for supplies, and a reading chair with a floor lamp in one quiet corner.",
+    "order": 7,
+    "video": "assets/videos/office_sft_rl.mp4",
+    "poster": "assets/images/office_sft_rl.webp",
+    "layout": "assets/images/office_sft_rl_layout.webp"
+  },
+  {
+    "id": "kitchen_rl_front",
+    "title": "Contemporary Kitchen",
+    "zh": "现代厨房 · 二",
+    "category": "Kitchen",
+    "prompt": "Design a compact contemporary kitchen with a range, refrigerator, and sink arranged efficiently, generous base cabinets, a narrow preparation island, and two stools for casual breakfasts.",
+    "order": 8,
+    "video": "assets/videos/kitchen_rl_front.mp4",
+    "poster": "assets/images/kitchen_rl_front.webp",
+    "layout": "assets/images/kitchen_rl_front_layout.webp"
+  },
+  {
+    "id": "living_rl_front",
+    "title": "Living Room",
+    "zh": "会客客厅 · 二",
+    "category": "Living",
+    "prompt": "Create a relaxed conversation-focused living room with a sofa and two armchairs around a coffee table, a media console against one wall, and a floor lamp beside the seating area.",
+    "order": 9,
+    "video": "assets/videos/living_rl_front.mp4",
+    "poster": "assets/images/living_rl_front.webp",
+    "layout": "assets/images/living_rl_front_layout.webp"
+  },
+  {
+    "id": "home_office_rl_front",
+    "title": "Home Office",
+    "zh": "专注办公 · 二",
+    "category": "Office",
+    "prompt": "Design a focused home office with a broad desk facing the window, an ergonomic chair, closed storage for supplies, and a reading chair with a floor lamp in one quiet corner.",
+    "order": 10,
+    "video": "assets/videos/home_office_rl_front.mp4",
+    "poster": "assets/images/home_office_rl_front.webp",
+    "layout": "assets/images/home_office_rl_front_layout.webp"
+  }
+]

@@ -1,0 +1,48 @@
+Tools available to the furniture designer. Field names, types, enums, ranges are strictly enforced.
+
+# Asset generation
+
+- generate_assets(object_descriptions: list[str], short_names: list[str], desired_dimensions: list[[w,d,h]], style_context: str = "") -> {success, assets: [{object_id, width, depth, height, source}]}
+  Batch-generate (or retrieve from articulated catalog) 3D furniture assets.
+  object_descriptions / short_names / desired_dimensions MUST be lists of equal length (one entry per asset).
+  desired_dimensions is a list of [width, depth, height] triplets, meters.
+  Every asset_id used in add_furniture_to_scene_tool MUST first be produced here.
+
+# Placement
+
+- add_furniture_to_scene_tool(asset_id: str, x: float, y: float, yaw: float = 0.0) -> Result
+  Place an asset in the room at (x, y, yaw). yaw in degrees; 0 faces +y (north).
+  asset_id MUST be an object_id returned by an earlier generate_assets.
+
+- snap_to_object_tool(object_id: str, target_id: str, orientation: str = "none") -> Result
+  Snap flush to a wall or furniture. orientation is enum ["toward","away","none"].
+    "toward" — face toward target (chairs → tables, sofas → TV)
+    "away"   — face away from target (storage furniture → walls)
+    "none"   — symmetric items (coffee tables)
+  orientation="away" is ONLY valid when target_id is a wall id (e.g. "wall_north",
+  "east_wall"); for furniture-to-furniture snapping use orientation="none".
+
+# Correction
+
+- move_furniture_tool(object_id: str, x: float, y: float, yaw: float = 0.0) -> Result
+  Absolute move/rotate of an existing object.
+
+- remove_furniture_tool(object_id: str) -> Result
+
+- rescale_furniture_tool(object_id: str, scale_factor: float) -> Result
+  Rescale the asset SDF. scale_factor > 0 and != 1.0.
+  ⚠ Affects ALL instances of the same asset (not just this object).
+
+# Validation
+
+- check_physics() -> str
+  Run the physics/collision check after placement or correction. Use its
+  result to detect furniture-floor, furniture-wall, and object collisions.
+
+# Strict rules
+
+- asset_id / object_id are CASE-SENSITIVE exact strings returned by generate_assets.
+  Never invent ids like "chair" (no postfix) — real ids are "chair_0", "dining_chair_a1b2".
+- desired_dimensions is list[list[float]], NOT a JSON string.
+- `snap_to_object_tool.orientation="away"` to a wall is the correct idiom for storage furniture (wardrobes, dressers, cabinets, beds, nightstands, desks). Using "toward" makes the functional front face the wall and breaks usage.
+- Furniture sits on the floor: only x, y, yaw are exposed (z / roll / pitch are fixed internally).

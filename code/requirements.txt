@@ -1,0 +1,16 @@
+# Python 3.11. Install SceneSmith separately for geometry, rendering and tools.
+torch>=2.8,<2.9
+torchvision>=0.23,<0.24
+transformers==4.57.6
+accelerate>=1.10
+peft>=0.18
+safetensors>=0.4
+Pillow>=10
+numpy>=1.26,<2
+matplotlib>=3.8
+openai>=2.8
+requests>=2.31
+fastapi>=0.115
+uvicorn>=0.30
+hydra-core>=1.3
+omegaconf>=2.3
