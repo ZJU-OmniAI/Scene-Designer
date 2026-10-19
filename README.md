@@ -58,7 +58,7 @@ Global length and object-completeness rewards support efficient, complete scene 
 
 | Resource | Description | Access |
 | :--- | :--- | :---: |
-| **Scene-Builder-Qwen3-VL-8B-Instruct** | Full v7 SFT checkpoint, initialized from Qwen3-VL-8B-Instruct | [🤗 Model](https://huggingface.co/XuanyuLiu/Scene-Builder-Qwen3-VL-8B-Instruct) |
+| **Scene-Builder-Qwen3-VL-8B-Instruct** | Full SFT checkpoint, initialized from Qwen3-VL-8B-Instruct | [🤗 Model](https://huggingface.co/XuanyuLiu/Scene-Builder-Qwen3-VL-8B-Instruct) |
 | **Scene-OTC-Bench** | 94 two-scene comparisons and 55 four-scene ranking questions | [🤗 Dataset](https://huggingface.co/datasets/XuanyuLiu/Scene-OTC-Bench) |
 
 The published weights are the **Scene-Builder SFT stage**, before Scene-GRPO. Scene-OTC-Bench is held out for evaluation; do not mix it into training.

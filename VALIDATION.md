@@ -14,14 +14,14 @@ Checks performed on 2026-10-16. These establish execution and data contracts, no
 | External SceneSmith | Integration patch applied to an independent checkout at the documented upstream revision; main modules import from the curated release and that checkout |
 | Real scene rendering | Existing bedroom exported through Drake/Blender, then rendered to topdown + south/east/west/north; output images inspected, with live object/coordinate annotations |
 | Real Scene-OTC geometry path | Existing bedroom → perturbation → Blender candidate renders → ranking JSONL → portable Critic SFT JSON and copied relative image paths; API judge deliberately skipped in this smoke check |
-| Real checkpoint SFT | Published v7 weights on CPU, five real scene images, LoRA rank 2, one optimizer update at learning rate 2e-5, finite loss/gradients, saved adapter; nonzero LoRA B weights checked |
+| Real checkpoint SFT | Published Scene-Builder weights on CPU, five real scene images, LoRA rank 2, one optimizer update at learning rate 2e-5, finite loss/gradients, saved adapter; nonzero LoRA B weights checked |
 | Merged LoRA save/reload | SFT CLI on a tiny randomly initialized Qwen3-VL with the real processor; merged checkpoint reloads with no missing/unexpected keys and changed weights |
 | RL tensor/gradient path | Real VL processor + tiny random Qwen3-VL, five images, exact completion-token boundary, finite nonzero SFT and GRPO gradients |
-| Real model inference | Both independent-step inference and the actual rollout client's ModelPolicy ran with v7 weights on CPU; model-forward hooks confirmed five image grids |
-| One model/tool/observation cycle | Five real images → v7-generated `move_furniture_tool` → real SceneSmith furniture movement → five new current-state views. Uses an existing asset; no asset-generation stand-in is reported as real generation |
+| Real model inference | Both independent-step inference and the actual rollout client's ModelPolicy ran with Scene-Builder weights on CPU; model-forward hooks confirmed five image grids |
+| One model/tool/observation cycle | Five real images → Scene-Builder-generated `move_furniture_tool` → real SceneSmith furniture movement → five new current-state views. Uses an existing asset; no asset-generation stand-in is reported as real generation |
 | Release scan | No embedded credential tokens, personal machine paths, model weights, scene snapshots, datasets, upstream SceneSmith checkout or manuscript PDF in the release |
 
-The smoke images used reduced pixel/sample budgets to keep CPU checks practical. The real v7 SFT check used a small observation fixture, not the full training corpus. The tiny random model checks validate code and tensors only.
+The smoke images used reduced pixel/sample budgets to keep CPU checks practical. The real Scene-Builder SFT check used a small observation fixture, not the full training corpus. The tiny random model checks validate code and tensors only.
 
 ## Fixes made during verification
 
