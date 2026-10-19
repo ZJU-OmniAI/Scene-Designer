@@ -159,17 +159,14 @@ SceneSmith remains an external dependency; its license notice is retained in [in
 ## 📝 Citation
 
 ```bibtex
-@misc{liu2026scenedesigner,
-  title  = {Scene-Designer: Learning Design Intelligence
-            for Agentic 3D Scene Generation},
-  author = {Xuanyu Liu and Hongyan Feng and Miao Pan
-            and Sunlai Chen and Lizhou Liang and Bing Sun
-            and Wenqi Zhang and Xuhong Zhang},
-  year   = {2026},
-  eprint = {2610.23121},
-  archivePrefix = {arXiv},
-  primaryClass = {cs.CV},
-  url = {https://arxiv.org/abs/2610.23121}
+@misc{liu2026scenedesignerlearningdesignintelligence,
+      title={Scene-Designer: Learning Design Intelligence for Agentic 3D Scene Generation},
+      author={Xuanyu Liu and Hongyan Feng and Miao Pan and Sunlai Chen and Lizhou Liang and Bing Sun and Wenqi Zhang and Xuhong Zhang},
+      year={2026},
+      eprint={2610.23121},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2610.23121},
 }
 ```
 
