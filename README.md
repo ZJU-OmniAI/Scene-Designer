@@ -5,6 +5,7 @@
   <p>Zhejiang University · Universal Identification Technology (Hangzhou) Co., Ltd.</p>
   <p><strong>OmniAI Group of ZJU ACES Lab</strong><br><sub>* Equal contribution</sub></p>
   <p>
+    <a href="https://arxiv.org/abs/2610.23121"><img src="https://img.shields.io/badge/arXiv-2610.23121-B31B1B?style=for-the-badge&amp;logo=arxiv&amp;logoColor=white" alt="Paper on arXiv"></a>
     <a href="https://zju-omniai.github.io/Scene-Designer/"><img src="https://img.shields.io/badge/-Project_Page-0F5354?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white" alt="Project page"></a>
     <a href="https://huggingface.co/XuanyuLiu/Scene-Builder-Qwen3-VL-8B-Instruct"><img src="https://img.shields.io/badge/HF-Model-FFD21E?style=for-the-badge&amp;logo=huggingface&amp;labelColor=3A3B45" alt="Scene-Builder model"></a>
     <a href="https://huggingface.co/datasets/XuanyuLiu/Scene-OTC-Bench"><img src="https://img.shields.io/badge/HF-Dataset-FFD21E?style=for-the-badge&amp;logo=huggingface&amp;labelColor=3A3B45" alt="Scene-OTC-Bench dataset"></a>
@@ -13,12 +14,11 @@
   <p><a href="requirements.txt"><img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&amp;logoColor=white" alt="Python 3.11"></a></p>
 </div>
 
-<p align="center">
-  <a href="https://zju-omniai.github.io/Scene-Designer/#overview-video">
-    <img src="https://zju-omniai.github.io/Scene-Designer/assets/images/overview-poster.jpg" width="90%" alt="Watch the English Scene-Designer introduction">
-  </a>
-</p>
-<p align="center"><a href="https://zju-omniai.github.io/Scene-Designer/#overview-video">▶ Watch the English introduction</a> · <a href="https://zju-omniai.github.io/Scene-Designer/#demo">Explore scene demos</a></p>
+## 🎬 Introduction Video
+
+<video src="https://zju-omniai.github.io/Scene-Designer/assets/videos/scene-designer-overview-en.mp4?v=20261019-title-ava" poster="https://zju-omniai.github.io/Scene-Designer/assets/images/overview-poster.jpg?v=20261019-title-ava" controls width="100%"></video>
+
+[Open video directly](https://zju-omniai.github.io/Scene-Designer/assets/videos/scene-designer-overview-en.mp4?v=20261019-title-ava) · [Watch on the project page](https://zju-omniai.github.io/Scene-Designer/#overview-video)
 
 ## 📖 Overview
 
@@ -162,7 +162,10 @@ SceneSmith remains an external dependency; its license notice is retained in [in
             and Sunlai Chen and Lizhou Liang and Bing Sun
             and Wenqi Zhang and Xuhong Zhang},
   year   = {2026},
-  note   = {Research manuscript}
+  eprint = {2610.23121},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CV},
+  url = {https://arxiv.org/abs/2610.23121}
 }
 ```
 
