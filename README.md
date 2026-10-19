@@ -16,7 +16,11 @@
 
 ## 🎬 Introduction Video
 
-<video src="https://zju-omniai.github.io/Scene-Designer/assets/videos/scene-designer-overview-en.mp4?v=20261019-title-ava" poster="https://zju-omniai.github.io/Scene-Designer/assets/images/overview-poster.jpg?v=20261019-title-ava" controls width="100%"></video>
+<p align="center">
+  <a href="https://zju-omniai.github.io/Scene-Designer/#overview-video">
+    <img src="https://zju-omniai.github.io/Scene-Designer/assets/images/overview-poster.jpg?v=20261019-title-ava" width="90%" alt="Play the Scene-Designer introduction video">
+  </a>
+</p>
 
 [Open video directly](https://zju-omniai.github.io/Scene-Designer/assets/videos/scene-designer-overview-en.mp4?v=20261019-title-ava) · [Watch on the project page](https://zju-omniai.github.io/Scene-Designer/#overview-video)
 
