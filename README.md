@@ -1,6 +1,7 @@
 <div align="center">
   <h1><img src="https://zju-omniai.github.io/Scene-Designer/assets/images/title.png" alt="Scene-Designer bear logo" height="64" align="absmiddle">&nbsp; Scene-Designer</h1>
   <p><strong>Learning Design Intelligence for Agentic 3D Scene Generation</strong></p>
+  <p>知之愈明，则行之愈笃；行之愈笃，则知之益明<br>— 朱熹《朱子语类》</p>
   <p>Xuanyu Liu*, Hongyan Feng*, Miao Pan, Sunlai Chen, Lizhou Liang, Bing Sun, Wenqi Zhang, Xuhong Zhang</p>
   <p>Zhejiang University · Universal Identification Technology (Hangzhou) Co., Ltd.</p>
   <p><strong>OmniAI Group of ZJU ACES Lab</strong><br><sub>* Equal contribution</sub></p>
